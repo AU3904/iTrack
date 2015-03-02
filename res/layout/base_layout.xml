@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+    <android.support.v4.widget.DrawerLayout
+            android:id="@+id/drawer_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <!-- The main content view -->
+        <LinearLayout
+                android:id="@+id/content_frame"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+        </LinearLayout>
+        <!-- The navigation drawer -->
+        <!--<LinearLayout-->
+        <!--android:id="@+id/custom_layout"-->
+        <!--android:orientation="vertical"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="fill_parent">-->
+        <!--</LinearLayout>-->
+
+        <!--android:layout_gravity="start"-->
+        <LinearLayout
+                android:id="@+id/ll_left_drawer"
+                android:orientation="vertical"
+                android:layout_gravity="start"
+                android:background="#FFFFFF"
+                android:layout_width="240dp"
+                android:layout_height="match_parent">
+
+            <LinearLayout
+                    android:id="@+id/ll_left_drawer_of_login"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:background="@drawable/drawer_profile_bg_pressed"
+                    >
+
+                <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginLeft="10dp"
+                        android:layout_gravity="center_vertical"
+                        android:id="@+id/imageView"
+                        android:src="@drawable/profile_silhuette"
+                        />
+
+
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:layout_marginLeft="10dp"
+                        android:layout_gravity="center_vertical"
+                        android:text="AU3604"
+                        android:id="@+id/textView"/>
+
+            </LinearLayout>
+
+
+            <ListView android:id="@+id/left_drawer"
+                      android:layout_width="240dp"
+                      android:layout_height="match_parent"
+                      android:layout_gravity="start"
+                      android:choiceMode="singleChoice"
+                      android:divider="@android:color/transparent"
+                      android:dividerHeight="0dp"
+                      android:background="#FFFFFF"/>
+        </LinearLayout>
+
+    </android.support.v4.widget.DrawerLayout>
+
+
+</RelativeLayout>

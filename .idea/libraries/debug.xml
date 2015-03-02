@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="debug">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/iTrack/build/intermediates/pre-dexed/debug/mpandroidchartlibrary-1-7-4-5618e1774c59493c460d9210b79bbcb49afce1c6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/iTrack/build/intermediates/pre-dexed/debug/baidumapapi_v3_2_0-e85b8a06489ddbf6fbd8781b54143aedded99b63.jar!/" />
+      <root url="jar://$PROJECT_DIR$/iTrack/build/intermediates/pre-dexed/debug/android-support-v4-669df702b11e42d395410e3dc04a3144f69475bd.jar!/" />
+      <root url="jar://$PROJECT_DIR$/iTrack/build/intermediates/pre-dexed/debug/litepal-1.1.1-ad1b263c12d092e013a156c5e03961a2a448f35b.jar!/" />
+      <root url="jar://$PROJECT_DIR$/iTrack/build/intermediates/pre-dexed/debug/locSDK_3.1-1326d0c2c9b768a87d81c03b1065a87b9602b0ed.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

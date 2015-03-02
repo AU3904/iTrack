@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/more_flow"
+          android:icon="@drawable/ic_menu_moreoverflow"
+          android:title="@string/moreflow"
+          android:showAsAction="ifRoom|withText" />
+
+</menu>
