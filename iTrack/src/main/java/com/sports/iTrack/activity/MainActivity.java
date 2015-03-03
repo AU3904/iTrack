@@ -89,6 +89,8 @@ public class MainActivity extends BaseActivity
     private List<LatLng> backupPts = new ArrayList<LatLng>();
     private SparseArray<BDLocation> locationSparseArray = new SparseArray<BDLocation>();
 
+    private MyThread mCounterThread;
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
@@ -281,9 +283,20 @@ public class MainActivity extends BaseActivity
 
                 setClickable(false);
 
-                new Thread(new MyThread()).start();
+                if (mCounterThread == null) {
+                    mCounterThread = new MyThread();
+                    mCounterThread.start();
+                }
 
-                startTrack = true;
+//                startTrack = true;
+
+                /**
+                 * 线程是否 挂起的，如果挂起，则恢复
+                 */
+
+                if (mCounterThread.isSuspend()) {
+                    mCounterThread.doResume();
+                }
                 /**
                  * 只调一次，后续自动保存数据
                  */
@@ -297,6 +310,13 @@ public class MainActivity extends BaseActivity
 
 
             new SaveTrackItemTask().execute();
+
+            /**
+             * 如果线程没有挂起，则暂停线程
+             */
+            if (!mCounterThread.isSuspend()) {
+                mCounterThread.doSuspend();
+            }
 
             /**
              * 清除view 显示数据
@@ -377,20 +397,23 @@ public class MainActivity extends BaseActivity
         public void handleMessage(Message msg){
             switch (msg.what) {
                 case MSG_SECOND:
-                    mSecond++;
-                    if (mSecond < 10) {
-                        tv_duration_second.setText("0" + mSecond);
-                        Log.e("lushuifei", "second:" + mSecond);
-                    } else if (mSecond > 9 && mSecond < 60) {
-                        tv_duration_second.setText("" + mSecond);
-                    } else if (mSecond > 59) {
-                        mSecond = 0;
-                        tv_duration_second.setText("0" + mSecond);
-                        mMin++;
-                        Message message = new Message();
-                        message.what = MSG_MIN;
-                        handler.sendMessage(message);
+                    if (startTrack) {
+                        mSecond++;
+                        if (mSecond < 10) {
+                            tv_duration_second.setText("0" + mSecond);
+                            Log.e("lushuifei", "second:" + mSecond);
+                        } else if (mSecond > 9 && mSecond < 60) {
+                            tv_duration_second.setText("" + mSecond);
+                        } else if (mSecond > 59) {
+                            mSecond = 0;
+                            tv_duration_second.setText("0" + mSecond);
+                            mMin++;
+                            Message message = new Message();
+                            message.what = MSG_MIN;
+                            handler.sendMessage(message);
+                        }
                     }
+
                     break;
                 case MSG_MIN:
                     if (mMin == 2 || mMin == 4 || mMin == 8 ||mMin == 15 || mMin == 45 || mMin == 60) {//if (mMin == 15 || mMin == 45 || mMin == 60) {
@@ -476,22 +499,37 @@ public class MainActivity extends BaseActivity
         }
     };
 
-    public class MyThread implements Runnable{
+    public class MyThread extends Thread{
 
         @Override public void run() {
             while(true){
-                try{
+                try {
                     if (startTrack) {
                         Thread.sleep(1000);     // sleep 1000ms
                         Message message = new Message();
                         message.what = MSG_SECOND;
                         handler.sendMessage(message);
+                    } else {
+                        wait();
                     }
                 }catch (Exception e) {
                 }
             }
-
         }
+
+        public void doSuspend() {
+            startTrack = false;
+        }
+
+        public void doResume() {
+            startTrack = true;
+        }
+
+        public boolean isSuspend() {
+            return !startTrack;
+        }
+
+
     }
 
     /**
