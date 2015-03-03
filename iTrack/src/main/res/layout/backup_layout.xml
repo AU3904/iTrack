@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <!--<ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="75dip"
+            android:src="@drawable/btn_route_icon_switch_pressed"
+            android:id="@+id/btn_switch"
+            android:layout_alignParentLeft="true"/>
+    <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dip"
+            android:layout_marginTop="5dip"
+            android:orientation="horizontal">
+
+        <Button
+                android:id="@+id/drive"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_marginLeft="2dip"
+                android:layout_marginRight="2dip"
+                android:layout_weight="1.0"
+                android:text="驾车搜索"/>
+
+        <Button
+                android:id="@+id/transit"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_marginLeft="2dip"
+                android:layout_marginRight="2dip"
+                android:layout_weight="1.0"
+                android:text="公交搜索"/>
+
+        <Button
+                android:id="@+id/walk"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_marginLeft="2dip"
+                android:layout_marginRight="2dip"
+                android:layout_weight="1.0"
+                android:text="步行搜索"/>
+    </LinearLayout>-->
+
+    <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOff="停止记录"
+            android:textOn="打开记录"
+            android:id="@+id/switch1"/>
+
+
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="轨迹回放"
+            android:id="@+id/button2"
+            android:layout_gravity="center_horizontal"/>
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Button"
+            android:id="@+id/button"/>
+
+
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/route_llayout"
+
+            >
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="75dip">
+
+            <ImageButton
+                    android:layout_width="45dip"
+                    android:layout_height="75dip"
+                    android:src="@drawable/btn_route_icon_switch_pressed"
+                    android:id="@+id/btn_switch"
+                    android:background="@android:color/background_light"
+                    android:layout_alignParentLeft="true"/>
+
+
+            <TextView
+                    android:id="@+id/textView_start"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_toRightOf="@id/btn_switch"
+                    android:textSize="20sp"
+                    android:text="Start"/>
+
+            <EditText
+                    android:id="@+id/start"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@id/textView_start"
+                    android:layout_alignTop="@id/textView_start">
+
+                <requestFocus/>
+            </EditText>
+
+
+            <TextView
+                    android:id="@+id/textView_end"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_toRightOf="@id/btn_switch"
+                    android:textSize="20sp"
+                    android:text="End"/>
+
+            <EditText
+                    android:id="@+id/end"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@id/textView_end"
+                    android:layout_below="@+id/start">
+
+                <requestFocus/>
+            </EditText>
+
+
+        </RelativeLayout>
+
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dip"
+                android:layout_marginTop="5dip"
+                android:orientation="horizontal">
+
+            <Button
+                    android:id="@+id/drive"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_marginLeft="2dip"
+                    android:layout_marginRight="2dip"
+                    android:layout_weight="1.0"
+                    android:text="驾车搜索"/>
+
+            <Button
+                    android:id="@+id/transit"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_marginLeft="2dip"
+                    android:layout_marginRight="2dip"
+                    android:layout_weight="1.0"
+                    android:text="公交搜索"/>
+
+            <Button
+                    android:id="@+id/walk"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_marginLeft="2dip"
+                    android:layout_marginRight="2dip"
+                    android:layout_weight="1.0"
+                    android:text="步行搜索"/>
+        </LinearLayout>
+
+
+    </LinearLayout>
+</LinearLayout>

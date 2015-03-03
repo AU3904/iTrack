@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="45dp"
+        android:background="@color/tab_background"
+        >
+    <!--android:background="@android:color/darker_gray"
+    android:descendantFocusability="beforeDescendants"-->
+    <RelativeLayout
+            android:id="@+id/id_tab_bottom_about"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1">
+
+        <ImageView
+                android:id="@+id/iv_tab_about"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/postnormal"
+                />
+
+        <ImageView
+                android:id="@+id/iv_tab_about_bottom"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/abs__tab_unselected_pressed_holo"
+                android:visibility="invisible"/>
+    </RelativeLayout>
+
+    <ImageView android:layout_width="1dp"
+               android:layout_height="25dp"
+               android:layout_gravity="center_vertical"
+               android:background="@color/tab_divider"/>
+
+    <RelativeLayout
+            android:id="@+id/id_tab_bottom_detail"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+
+            android:gravity="center"
+            android:orientation="vertical">
+
+        <ImageView
+                android:id="@+id/iv_tab_detail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/recordnormal"/>
+
+        <ImageView
+                android:id="@+id/iv_tab_detail_bottom"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/abs__tab_unselected_pressed_holo"
+                android:visibility="invisible"/>
+    </RelativeLayout>
+
+
+    <ImageView android:layout_width="1dp"
+               android:layout_height="25dp"
+               android:layout_gravity="center_vertical"
+               android:background="@color/tab_divider"/>
+
+
+    <RelativeLayout
+            android:id="@+id/id_tab_bottom_map"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:descendantFocusability="beforeDescendants"
+            android:gravity="center"
+            android:orientation="vertical">
+
+        <ImageView
+                android:id="@+id/iv_tab_map"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/mapnormal"/>
+
+        <ImageView
+                android:id="@+id/iv_tab_map_bottom"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/abs__tab_unselected_pressed_holo"
+                android:visibility="invisible"/>
+    </RelativeLayout>
+
+</LinearLayout>

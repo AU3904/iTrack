@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/iTrack/build/generated/source/buildConfig/buildConfig.iml" filepath="$PROJECT_DIR$/iTrack/build/generated/source/buildConfig/buildConfig.iml" />
-      <module fileurl="file://$PROJECT_DIR$/iTrack/build/intermediates/manifests/full/debug/debug.iml" filepath="$PROJECT_DIR$/iTrack/build/intermediates/manifests/full/debug/debug.iml" />
-      <module fileurl="file://$PROJECT_DIR$/iTrack_2.iml" filepath="$PROJECT_DIR$/iTrack_2.iml" />
-      <module fileurl="file://$PROJECT_DIR$/iTrack/build/generated/source/r/r.iml" filepath="$PROJECT_DIR$/iTrack/build/generated/source/r/r.iml" />
+      <module fileurl="file://$PROJECT_DIR$/iTrack.iml" filepath="$PROJECT_DIR$/iTrack.iml" />
+      <module fileurl="file://$PROJECT_DIR$/iTrack/iTrack-iTrack.iml" filepath="$PROJECT_DIR$/iTrack/iTrack-iTrack.iml" />
     </modules>
   </component>
 </project>
