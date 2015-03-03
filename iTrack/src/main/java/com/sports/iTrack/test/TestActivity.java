@@ -1,9 +1,8 @@
-package com.sports.iTrack;
+package com.sports.iTrack.test;
 
-import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.Window;
+
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
@@ -11,6 +10,8 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.utils.Legend;
 import com.github.mikephil.charting.utils.XLabels;
 import com.github.mikephil.charting.utils.YLabels;
+import com.sports.iTrack.R;
+import com.sports.iTrack.base.BaseActivity;
 
 import java.util.ArrayList;
 

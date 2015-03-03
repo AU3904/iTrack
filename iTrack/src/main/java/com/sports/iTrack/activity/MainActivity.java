@@ -1,4 +1,4 @@
-package com.sports.iTrack;
+package com.sports.iTrack.activity;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -19,8 +19,11 @@ import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.*;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
+import com.sports.iTrack.R;
+import com.sports.iTrack.base.BaseActivity;
 import com.sports.iTrack.model.RecordPoint;
 import com.sports.iTrack.model.TrackItem;
+import com.sports.iTrack.ui.SliderRelativeLayout;
 import com.sports.iTrack.utils.NetworkUtil;
 import com.sports.iTrack.utils.TimeUtil;
 import org.litepal.crud.DataSupport;

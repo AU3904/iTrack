@@ -1,4 +1,4 @@
-package com.sports.iTrack;
+package com.sports.iTrack.activity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -27,6 +27,7 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.utils.Legend;
 import com.github.mikephil.charting.utils.XLabels;
 import com.github.mikephil.charting.utils.YLabels;
+import com.sports.iTrack.R;
 import com.sports.iTrack.model.RecordPoint;
 import com.sports.iTrack.model.TrackItem;
 import com.sports.iTrack.utils.TimeUtil;

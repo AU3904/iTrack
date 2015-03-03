@@ -1,4 +1,4 @@
-package com.sports.iTrack;
+package com.sports.iTrack.activity;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -7,6 +7,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.view.View;
+
+import com.sports.iTrack.R;
 
 import java.util.List;
 

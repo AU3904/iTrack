@@ -1,13 +1,15 @@
-package com.sports.iTrack;
+package com.sports.iTrack.activity;
 
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.TimeUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
+
+import com.sports.iTrack.base.BaseActivity;
+import com.sports.iTrack.R;
 import com.sports.iTrack.model.TrackItem;
 import com.sports.iTrack.utils.TimeUtil;
 import org.litepal.crud.DataSupport;

@@ -1,8 +1,9 @@
-package com.sports.iTrack;
+package com.sports.iTrack.activity;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.os.Bundle;
+
+import com.sports.iTrack.base.BaseActivity;
+import com.sports.iTrack.R;
 
 /**
  * Created by aaron_lu on 2/12/15.

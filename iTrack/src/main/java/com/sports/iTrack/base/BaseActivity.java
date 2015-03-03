@@ -1,25 +1,25 @@
-package com.sports.iTrack;
+package com.sports.iTrack.base;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.SearchManager;
 import android.content.Context;
-import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.util.SparseArray;
 import android.view.*;
 import android.widget.*;
+
+import com.sports.iTrack.activity.MainActivity;
+import com.sports.iTrack.R;
+import com.sports.iTrack.activity.TroopsActivity;
+import com.sports.iTrack.activity.AboutActivity;
+import com.sports.iTrack.activity.HistoryActivity;
+import com.sports.iTrack.activity.MeActivity;
+import com.sports.iTrack.activity.RoutePlanActivity;
 import com.sports.iTrack.utils.PackageUtil;
 import com.sports.iTrack.utils.constant;
-
-import java.util.List;
 
 /**
  * Created by aaron_lu on 2/12/15.

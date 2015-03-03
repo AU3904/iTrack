@@ -254,7 +254,7 @@
         </LinearLayout>
 
 
-        <com.sports.iTrack.SliderRelativeLayout
+        <com.sports.iTrack.ui.SliderRelativeLayout
                 android:id="@+id/slider_layout"
                 android:layout_width="fill_parent"
                 android:layout_height="60dp"
@@ -299,7 +299,7 @@
                        android:layout_centerVertical="true"
                        android:background="@drawable/done">
             </ImageView>-->
-        </com.sports.iTrack.SliderRelativeLayout>
+        </com.sports.iTrack.ui.SliderRelativeLayout>
     </RelativeLayout>
 
 

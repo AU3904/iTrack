@@ -1,10 +1,9 @@
-package com.sports.iTrack;
+package com.sports.iTrack.base;
 
 import android.app.Activity;
-import android.database.sqlite.SQLiteDatabase;
+
 import com.baidu.mapapi.SDKInitializer;
 import org.litepal.LitePalApplication;
-import org.litepal.tablemanager.Connector;
 
 import java.util.LinkedList;
 import java.util.List;

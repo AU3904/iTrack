@@ -1,4 +1,4 @@
-package com.sports.iTrack;
+package com.sports.iTrack.ui;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -14,7 +14,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.sports.iTrack.activity.MainActivity;
+import com.sports.iTrack.R;
 
 public class SliderRelativeLayout extends RelativeLayout {
 

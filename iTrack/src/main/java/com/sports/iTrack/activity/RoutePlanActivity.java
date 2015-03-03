@@ -1,16 +1,10 @@
-package com.sports.iTrack;
+package com.sports.iTrack.activity;
 
-import android.app.Activity;
-import android.app.SearchManager;
-import android.content.Intent;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.*;
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
@@ -19,17 +13,14 @@ import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.*;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.overlayutil.DrivingRouteOverlay;
-import com.baidu.mapapi.overlayutil.OverlayManager;
 import com.baidu.mapapi.overlayutil.TransitRouteOverlay;
 import com.baidu.mapapi.overlayutil.WalkingRouteOverlay;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.geocode.*;
 import com.baidu.mapapi.search.route.*;
+import com.sports.iTrack.base.BaseActivity;
+import com.sports.iTrack.R;
 import com.sports.iTrack.utils.TimeUtil;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by aaron_lu on 2/3/15.
