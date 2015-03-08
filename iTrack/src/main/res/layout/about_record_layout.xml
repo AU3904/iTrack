@@ -227,6 +227,7 @@
                     android:text="卡路里"
                     android:layout_toRightOf="@+id/summary_cal_icon"/>
             <TextView
+                    android:id="@+id/tv_cal_title"
                     android:layout_toRightOf="@+id/summary_cal_icon"
                     android:layout_below="@+id/summary_cal_title"
                     android:layout_marginLeft="10dp"

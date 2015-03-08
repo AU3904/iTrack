@@ -13,6 +13,7 @@ public class TrackItem extends DataSupport {
 
     private int sportTpye;
     private int recordPointsCount;
+    private int kal;
     private long startTime;
     private long endTime;
     private long timestamp;
@@ -23,6 +24,14 @@ public class TrackItem extends DataSupport {
     private double minAltitude;
     private double distance;
     private String discription;
+
+    public int getKal() {
+        return kal;
+    }
+
+    public void setKal(int kal) {
+        this.kal = kal;
+    }
 
     private List<RecordPoint> recordPointList = new ArrayList<RecordPoint>();
 

@@ -75,18 +75,6 @@ public class TimeUtil {
         return N + "时 " + K + "分 ";
     }
 
-//    /**
-//     * 用于格式化线路规划查询的
-//     * @param distance
-//     * @return
-//     */
-//    public static String formatDistance(int distance) {
-//        if (distance == 0)
-//            return "0";
-//        DecimalFormat decimalFormat = new DecimalFormat(".0");
-//        return decimalFormat.format(distance);
-//    }
-
     /**
      * 卡路里计算公式，
      * 先获取平均速度，根据平均速度，来得到 每30min 消耗的卡路里 值
@@ -109,9 +97,9 @@ public class TimeUtil {
             unitConsume = 443;
         }
 
-        int kal = unitConsume * (duration / 30) * (kg / 60);
+        double kal = unitConsume * ((double)duration / (double)30) * ((double)kg / (double)60);
 
-        return kal;
+        return (int)Math.ceil(kal);
     }
 
 }

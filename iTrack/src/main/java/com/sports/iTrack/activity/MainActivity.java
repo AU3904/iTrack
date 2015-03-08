@@ -9,7 +9,11 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.*;
 import com.baidu.location.BDLocation;
@@ -55,6 +59,7 @@ public class MainActivity extends BaseActivity
     private int mHour = 0;
     private int previousPosition = 0;
     private int index = 0;
+    private int mKal = 0;
 
 
     private double mCurrentAvgSpeed;
@@ -90,7 +95,7 @@ public class MainActivity extends BaseActivity
     private SparseArray<BDLocation> locationSparseArray = new SparseArray<BDLocation>();
 
     private MyThread mCounterThread;
-
+    private long mExitTime;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
@@ -348,8 +353,16 @@ public class MainActivity extends BaseActivity
     public boolean onKeyDown(int keyCode ,KeyEvent event){
 
         if(event.getKeyCode() == KeyEvent.KEYCODE_BACK){
-            if (sliderLayout.isShown()) {
-                return true ;
+            if (!startTrack) {
+                if ((System.currentTimeMillis() - mExitTime) > 2000) {
+                    Toast.makeText(getApplicationContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show();
+                    mExitTime = System.currentTimeMillis();
+                } else {
+                    finish();
+                    System.exit(0);
+                }
+
+                return true;
             } else {
                 return false;
             }
@@ -416,10 +429,10 @@ public class MainActivity extends BaseActivity
 
                     break;
                 case MSG_MIN:
-                    if (mMin == 2 || mMin == 4 || mMin == 8 ||mMin == 15 || mMin == 45 || mMin == 60) {//if (mMin == 15 || mMin == 45 || mMin == 60) {
-                        Message message = new Message();
-                        message.what = MSG_CAL;
-                        handler.sendMessage(message);
+                    if (mMin == 15 || mMin == 45 || mMin == 60) {
+                        Message message0 = new Message();
+                        message0.what = MSG_CAL;
+                        handler.sendMessage(message0);
                     }
 
                     if (mMin < 10) {
@@ -446,8 +459,8 @@ public class MainActivity extends BaseActivity
                     int t = mHour * 60 * 60 + mMin * 60 + mSecond;
                     double avgSpeed = (mCurrentDistance / t) * (3600 / 1000);
                     mCurrentAvgSpeed = TimeUtil.formatData(avgSpeed);
-                    int k = TimeUtil.getKal(mCurrentAvgSpeed, (mHour * 2 + mMin), 65);
-                    tv_cal.setText(k+"");
+                    mKal = TimeUtil.getKal(mCurrentAvgSpeed, (mHour * 2 + mMin), 65);
+                    tv_cal.setText(mKal + "");
 
                     break;
                 case MSG_DISTANCE:
@@ -605,6 +618,7 @@ public class MainActivity extends BaseActivity
             trackItem.setRecordPointsCount(recordPointsCount);
             trackItem.setDiscription(discription);
             trackItem.setTimestamp(timestamp);
+            trackItem.setKal(mKal);
             trackItem.save();
             return "保存成功";
         }

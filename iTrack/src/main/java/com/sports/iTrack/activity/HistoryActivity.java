@@ -3,7 +3,10 @@ package com.sports.iTrack.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
@@ -27,6 +30,7 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
     private TextView tv_total_times;
     private TextView tv_total_distance;
 
+    private TrackAdapter mTrackAdapter;
     private List<TrackItem> mTrackItems = new ArrayList<TrackItem>();
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,6 +43,8 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
 
         listView = (ListView) findViewById(R.id.list);
         listView.setOnItemClickListener(this);
+        mTrackAdapter = new TrackAdapter(this);
+        this.registerForContextMenu(listView);
     }
 
     @Override protected void onResume() {
@@ -63,9 +69,34 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
         tv_total_distance.setText(str_distance);
         tv_total_duration.setText(TimeUtil.formatTimestamp(total_duration, TimeUtil.HH_MM_SS));
 
-        listView.setAdapter(new TrackAdapter(this));
+        listView.setAdapter(mTrackAdapter == null ? new TrackAdapter(this) : mTrackAdapter);
     }
 
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        menu.add(0, 1, Menu.NONE, "删除");
+        menu.add(0, 2, Menu.NONE, "修改");
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+//                TrackItem i = mTrackItems.get(menuInfo.position);
+        switch (item.getItemId()) {
+            case 1:
+                DataSupport.delete(TrackItem.class, (mTrackItems.size() - menuInfo.position));
+                mTrackAdapter.notifyDataSetChanged();
+                break;
+            case 2:
+                Toast.makeText(this, "modified......", Toast.LENGTH_LONG).show();
+                break;
+            default:
+                return super.onContextItemSelected(item);
+        }
+        return true;
+    }
 
     @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Intent intent = new Intent(this, DetailActivity.class);

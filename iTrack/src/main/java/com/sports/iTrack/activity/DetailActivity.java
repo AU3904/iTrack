@@ -281,6 +281,7 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
         private TextView tvSpeedRange;
         private TextView tvDesciption;
         private TextView tvSportTime;
+        private TextView tvKal;
 
         private View recordLayout;
 
@@ -300,6 +301,7 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
             tvEndTime = (TextView) recordLayout.findViewById(R.id.tv_endtime);
             tvSpeedRange = (TextView) recordLayout.findViewById(R.id.tv_speed_range);
             tvSportTime = (TextView) recordLayout.findViewById(R.id.tv_sport_time);
+            tvKal = (TextView) recordLayout.findViewById(R.id.tv_cal_title);
         }
 
         @Override public void onResume() {
@@ -327,6 +329,8 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
             tvDesciption.setText(mCurrentTrackItem.getDiscription());
 
             tvAvgSpeed.setText(Double.toString(mCurrentTrackItem.getAvgSpeed()) + "km/h");
+
+            tvKal.setText(Integer.toString(mCurrentTrackItem.getKal()) + "大卡");
         }
     }
 
