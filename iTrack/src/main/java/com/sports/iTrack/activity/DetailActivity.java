@@ -61,7 +61,7 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        int id = getIntent().getIntExtra(ID_TRACK_ITEM, -1);
+        long id = getIntent().getLongExtra(ID_TRACK_ITEM, -1);
         new DataGetTask().execute(id);
 
         /**
@@ -119,16 +119,19 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
         }
     }
 
-    private class DataGetTask extends AsyncTask<Integer, Void, Void> {
+    private class DataGetTask extends AsyncTask<Long, Void, Void> {
 
-        @Override protected Void doInBackground(Integer... params) {
+        @Override protected Void doInBackground(Long... params) {
             /**
-             * 作了激进查询处理，会将属于某一id的RecordPoint 全部查询出来；
-             * 不能作激进查询，会导致数据无法保存到数据库
+             * 作激进查询，会导致数据无法保存到数据库, 故trackitem_id 单独进行查询
              */
             List<TrackItem> trackItemList = DataSupport.where("id = ?",
                     String.valueOf(params[0])).find(
                     TrackItem.class);
+
+            if (trackItemList.size() < 1) {
+                return null;
+            }
 
             mCurrentTrackItem = trackItemList.get(0);
 
@@ -372,7 +375,7 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
             mMapView = (MapView) mapRecordLayout.findViewById(R.id.bmapView);
             mBaiduMap = mMapView.getMap();
 
-            if (mLatLngs == null || mPoints == null || mPoints.size() == 0) {
+            if (mLatLngs == null || mLatLngs.size() < 2 || mPoints == null || mPoints.size() == 0) {
                 return;
             }
             mBaiduMap.clear();

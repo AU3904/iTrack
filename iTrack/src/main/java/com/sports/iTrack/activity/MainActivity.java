@@ -414,7 +414,6 @@ public class MainActivity extends BaseActivity
                         mSecond++;
                         if (mSecond < 10) {
                             tv_duration_second.setText("0" + mSecond);
-                            Log.e("lushuifei", "second:" + mSecond);
                         } else if (mSecond > 9 && mSecond < 60) {
                             tv_duration_second.setText("" + mSecond);
                         } else if (mSecond > 59) {
@@ -574,9 +573,9 @@ public class MainActivity extends BaseActivity
                 distance += recordPoints.get(i).getDistance();
             }
 
-            if (distance == 0) {
+            /*if (distance == 0) {
                 return "运动距离为0，不保存数据";
-            }
+            }*/
 
             distance = TimeUtil.formatData(distance);
 

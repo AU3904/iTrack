@@ -17,6 +17,7 @@ public class TrackItem extends DataSupport {
     private long startTime;
     private long endTime;
     private long timestamp;
+    private long id;
     private double avgSpeed;
     private double maxSpeed;
     private double minSpeed;
@@ -24,6 +25,10 @@ public class TrackItem extends DataSupport {
     private double minAltitude;
     private double distance;
     private String discription;
+
+    public long getId(){
+        return id;
+    }
 
     public int getKal() {
         return kal;
@@ -87,14 +92,6 @@ public class TrackItem extends DataSupport {
 //        return DataSupport.where("trackitem_id = ?", String.valueOf(id)).find(RecordPoint.class);
         return recordPointList;
     }
-
-//    public int getId() {
-//        return id;
-//    }
-//
-//    public void setId(int id) {
-//        this.id = id;
-//    }
 
     public void setRecordPointList(List<RecordPoint> recordPointList) {
         this.recordPointList = recordPointList;

@@ -3,6 +3,9 @@ package com.sports.iTrack.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -24,6 +27,9 @@ import java.util.List;
  * Created by aaron_lu on 2/5/15.
  */
 public class HistoryActivity extends BaseActivity implements AdapterView.OnItemClickListener{
+
+    private static final int MSG_REFLESH_UI = 1;
+
     private ListView listView;
 
     private TextView tv_total_duration;
@@ -51,23 +57,7 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
         super.onResume();
         mTrackItems = getTrackList();
 
-        tv_total_times.setText(Integer.toString(mTrackItems.size()));
-        double total_distance = 0.0D;
-        long total_duration = 0;
-        for (int i = 0; i < mTrackItems.size(); i++) {
-            total_distance += mTrackItems.get(i).getDistance();
-            total_duration += (mTrackItems.get(i).getEndTime() - mTrackItems.get(i).getStartTime());
-        }
-
-        String str_distance = "";
-        if (total_distance > 1000) {
-            str_distance = TimeUtil.formatData(total_distance / 1000) + "km";
-        } else {
-            str_distance = TimeUtil.formatData(total_distance) + "m";
-        }
-
-        tv_total_distance.setText(str_distance);
-        tv_total_duration.setText(TimeUtil.formatTimestamp(total_duration, TimeUtil.HH_MM_SS));
+        initUI();
 
         listView.setAdapter(mTrackAdapter == null ? new TrackAdapter(this) : mTrackAdapter);
     }
@@ -83,11 +73,16 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-//                TrackItem i = mTrackItems.get(menuInfo.position);
         switch (item.getItemId()) {
             case 1:
-                DataSupport.delete(TrackItem.class, (mTrackItems.size() - menuInfo.position));
-                mTrackAdapter.notifyDataSetChanged();
+                DataSupport.delete(TrackItem.class, mTrackAdapter.getItemId(menuInfo.position));
+                mTrackItems.remove(mTrackAdapter.getItem(menuInfo.position));
+                ((TrackAdapter)listView.getAdapter()).notifyDataSetChanged();
+
+                Message message = new Message();
+                message.what = MSG_REFLESH_UI;
+                handler.sendMessage(message);
+
                 break;
             case 2:
                 Toast.makeText(this, "modified......", Toast.LENGTH_LONG).show();
@@ -100,10 +95,22 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
 
     @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Intent intent = new Intent(this, DetailActivity.class);
-        //size  始终比 position 大，
-        intent.putExtra(DetailActivity.ID_TRACK_ITEM, (mTrackItems.size() - position));
+        intent.putExtra(DetailActivity.ID_TRACK_ITEM, (mTrackAdapter.getItemId(position)));
         startActivity(intent);
     }
+
+    final Handler handler = new Handler() {
+
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_REFLESH_UI:
+                    initUI();
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
 
     public final class ViewHolder{
         public TextView tvSportType;
@@ -129,7 +136,7 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
         }
 
         @Override public long getItemId(int position) {
-            return 0;
+            return mTrackItems.get(position).getId();
         }
 
         @Override public View getView(int position, View convertView, ViewGroup parent) {
@@ -151,23 +158,26 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
 
             TrackItem item = mTrackItems.get(position);
 
-            String str_distance = "";
-            if (item.getDistance() > 1000) {
-                str_distance = TimeUtil.formatData(item.getDistance() / 1000) + "km";
-            } else {
-                str_distance = TimeUtil.formatData(item.getDistance()) + "m";
-            }
-            viewHolder.tvDistance.setText(str_distance);
-            viewHolder.tvEndTime.setText(TimeUtil.formatTimestamp(item.getEndTime(),
-                    TimeUtil.YYYY_MM_DD));
+            if (item != null) {
+                String str_distance = "";
+                if (item.getDistance() > 1000) {
+                    str_distance = TimeUtil.formatData(item.getDistance() / 1000) + "km";
+                } else {
+                    str_distance = TimeUtil.formatData(item.getDistance()) + "m";
+                }
+                viewHolder.tvDistance.setText(str_distance);
+                viewHolder.tvEndTime.setText(TimeUtil.formatTimestamp(item.getEndTime(),
+                        TimeUtil.YYYY_MM_DD));
 
-            if (item.getSportTpye() == 1) {
-                viewHolder.tvSportType.setText("骑行:");
-            } else {
-                viewHolder.tvSportType.setText("?");
+                if (item.getSportTpye() == 1) {
+                    viewHolder.tvSportType.setText("骑行:");
+                } else {
+                    viewHolder.tvSportType.setText("?");
+                }
+
+                viewHolder.tvTime.setText(TimeUtil.getTimeSpan(item.getStartTime(), item.getEndTime()));
             }
 
-            viewHolder.tvTime.setText(TimeUtil.getTimeSpan(item.getStartTime(), item.getEndTime()));
             return convertView;
         }
     }
@@ -175,6 +185,26 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
     private List<TrackItem> getTrackList() {
         List<TrackItem> trackItemList = DataSupport.order("endtime desc").find(TrackItem.class);
         return trackItemList;
+    }
+
+    private void initUI(){
+        tv_total_times.setText(Integer.toString(mTrackItems.size()));
+        double total_distance = 0.0D;
+        long total_duration = 0;
+        for (int i = 0; i < mTrackItems.size(); i++) {
+            total_distance += mTrackItems.get(i).getDistance();
+            total_duration += (mTrackItems.get(i).getEndTime() - mTrackItems.get(i).getStartTime());
+        }
+
+        String str_distance = "";
+        if (total_distance > 1000) {
+            str_distance = TimeUtil.formatData(total_distance / 1000) + "km";
+        } else {
+            str_distance = TimeUtil.formatData(total_distance) + "m";
+        }
+
+        tv_total_distance.setText(str_distance);
+        tv_total_duration.setText(TimeUtil.formatTimestamp(total_duration, TimeUtil.HH_MM_SS));
     }
 
 }
