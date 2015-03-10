@@ -72,7 +72,7 @@ public class TimeUtil {
         int K = time / 60;
         time = time % 60;
         int M = time;
-        return N + "时 " + K + "分 ";
+        return N + "时 " + K + "分 " + M + "秒";
     }
 
     /**

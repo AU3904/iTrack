@@ -1,10 +1,6 @@
 package com.sports.iTrack.activity;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -21,12 +17,6 @@ import com.baidu.mapapi.map.*;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.utils.Legend;
-import com.github.mikephil.charting.utils.XLabels;
-import com.github.mikephil.charting.utils.YLabels;
 import com.sports.iTrack.R;
 import com.sports.iTrack.model.RecordPoint;
 import com.sports.iTrack.model.TrackItem;
@@ -314,8 +304,7 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
             tvEndTime.setText(
                     TimeUtil.formatTimestamp(mCurrentTrackItem.getTimestamp(),
                             TimeUtil.YYYY_MM_DD));
-            tvSportTime.setText(TimeUtil.getTimeSpan(mCurrentTrackItem.getStartTime(),
-                    mCurrentTrackItem.getEndTime()));
+            tvSportTime.setText(TimeUtil.formatTime((int)mCurrentTrackItem.getDuration()));
 
             String str_distance = "";
             if (mCurrentTrackItem.getDistance() > 1000) {

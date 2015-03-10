@@ -18,10 +18,20 @@ public class TrackItem extends DataSupport {
     private long endTime;
     private long timestamp;
     private long id;
+    private double duration;
     private double avgSpeed;
     private double maxSpeed;
     private double minSpeed;
     private double maxAltitude;
+
+    public double getDuration() {
+        return duration;
+    }
+
+    public void setDuration(double duration) {
+        this.duration = duration;
+    }
+
     private double minAltitude;
     private double distance;
     private String discription;

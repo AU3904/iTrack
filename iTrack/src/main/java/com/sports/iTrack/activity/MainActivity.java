@@ -9,11 +9,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.ContextMenu;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.*;
 import com.baidu.location.BDLocation;
@@ -37,7 +33,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends BaseActivity
@@ -60,7 +55,10 @@ public class MainActivity extends BaseActivity
     private int previousPosition = 0;
     private int index = 0;
     private int mKal = 0;
+    //如果倒计时15s 速度一直为0，暂停运动
+    private int mTrackPauseLimited = 14;
 
+    private long mExitTime;
 
     private double mCurrentAvgSpeed;
     private double mCurrentSpeed;
@@ -94,8 +92,7 @@ public class MainActivity extends BaseActivity
     private List<LatLng> backupPts = new ArrayList<LatLng>();
     private SparseArray<BDLocation> locationSparseArray = new SparseArray<BDLocation>();
 
-    private MyThread mCounterThread;
-    private long mExitTime;
+    private MyThread mCounterThread = new MyThread();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
@@ -186,7 +183,11 @@ public class MainActivity extends BaseActivity
                 mBaiduMap.animateMapStatus(u);
             }
 
-            if (startTrack) {
+            if (location.getSpeed() != 0) {
+                mCounterThread.doResume();
+            }
+
+            if (startTrack && !mCounterThread.isSuspend()) {
 
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 backupPts.add(latLng);
@@ -261,9 +262,7 @@ public class MainActivity extends BaseActivity
                     10).points(backupPts);
             mBaiduMap.addOverlay(polylineOption);
         } else if (v.getId() == R.id.bt_start) {
-            /**
-             * TODO 判断GPS信号强弱，太弱则作提示
-             */
+
             if (!NetworkUtil.isOpenGPS(this)) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("GPS 尚未打开，是否打开?")
@@ -276,7 +275,6 @@ public class MainActivity extends BaseActivity
                         .setNegativeButton("取消", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 dialog.cancel();
-                                return;
                             }
                         });
                 AlertDialog alert = builder.create();
@@ -288,20 +286,15 @@ public class MainActivity extends BaseActivity
 
                 setClickable(false);
 
-                if (mCounterThread == null) {
-                    mCounterThread = new MyThread();
-                    mCounterThread.start();
-                }
-
-//                startTrack = true;
-
-                /**
-                 * 线程是否 挂起的，如果挂起，则恢复
-                 */
+                startTrack = true;
 
                 if (mCounterThread.isSuspend()) {
                     mCounterThread.doResume();
                 }
+                if (!mCounterThread.isAlive()) {
+                    mCounterThread.start();
+                }
+
                 /**
                  * 只调一次，后续自动保存数据
                  */
@@ -314,7 +307,7 @@ public class MainActivity extends BaseActivity
             sliderLayout.setVisibility(View.GONE);
 
 
-            new SaveTrackItemTask().execute();
+            startTrack = false;
 
             /**
              * 如果线程没有挂起，则暂停线程
@@ -322,6 +315,8 @@ public class MainActivity extends BaseActivity
             if (!mCounterThread.isSuspend()) {
                 mCounterThread.doSuspend();
             }
+
+            new SaveTrackItemTask().execute();
 
             /**
              * 清除view 显示数据
@@ -335,7 +330,9 @@ public class MainActivity extends BaseActivity
             mllEndGoon.setVisibility(View.GONE);
             sliderLayout.setVisibility(View.VISIBLE);
 
-            startTrack = true;
+            if (mCounterThread.isSuspend()) {
+                mCounterThread.doResume();
+            }
         }
     }
 
@@ -410,7 +407,7 @@ public class MainActivity extends BaseActivity
         public void handleMessage(Message msg){
             switch (msg.what) {
                 case MSG_SECOND:
-                    if (startTrack) {
+                    if (startTrack && !mCounterThread.isSuspend()) {
                         mSecond++;
                         if (mSecond < 10) {
                             tv_duration_second.setText("0" + mSecond);
@@ -513,32 +510,43 @@ public class MainActivity extends BaseActivity
 
     public class MyThread extends Thread{
 
+        private boolean mPauseTrack = false;
+
         @Override public void run() {
             while(true){
                 try {
-                    if (startTrack) {
-                        Thread.sleep(1000);     // sleep 1000ms
-                        Message message = new Message();
-                        message.what = MSG_SECOND;
-                        handler.sendMessage(message);
+                    if (startTrack && !mPauseTrack) {
+                        Thread.sleep(1000);
+
+                        if (mCurrentSpeed == 0 && mTrackPauseLimited-- < 0) {
+                            mPauseTrack = true;
+                            mTrackPauseLimited = 30;
+                        } else {
+                            mPauseTrack = false;
+                            Message message = new Message();
+                            message.what = MSG_SECOND;
+                            handler.sendMessage(message);
+                        }
+
                     } else {
                         wait();
                     }
                 }catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
 
         public void doSuspend() {
-            startTrack = false;
+            mPauseTrack = true;
         }
 
         public void doResume() {
-            startTrack = true;
+            mPauseTrack = false;
         }
 
         public boolean isSuspend() {
-            return !startTrack;
+            return mPauseTrack;
         }
 
 
@@ -556,7 +564,7 @@ public class MainActivity extends BaseActivity
 
             List<RecordPoint> recordPoints = trackItem.getRecordPointList();
             if (recordPoints == null || recordPoints.size() == 0)
-                return "no data to save.";
+                return "没有数据，保存失败";
             long startTime = recordPoints.get(0).getTimestamp();
             long endTime = recordPoints.get(recordPoints.size() - 1).getTimestamp();
 
@@ -564,18 +572,16 @@ public class MainActivity extends BaseActivity
 
             ArrayList<Float> speeds = new ArrayList<Float>();
             ArrayList<Double> altitudes = new ArrayList<Double>();
-            double speed = 0.0D;
             for (int i = 0; i < recordPoints.size(); i++) {
-                //                speed += recordPoints.get(i).getSpeed();
                 speeds.add(recordPoints.get(i).getSpeed());
                 altitudes.add(recordPoints.get(i).getAltitude());
 
                 distance += recordPoints.get(i).getDistance();
             }
 
-            /*if (distance == 0) {
+            if (distance == 0) {
                 return "运动距离为0，不保存数据";
-            }*/
+            }
 
             distance = TimeUtil.formatData(distance);
 
@@ -587,7 +593,7 @@ public class MainActivity extends BaseActivity
              * 先计算m/s ，再转化为 km/h
              */
             //全程耗时,单位:秒
-            double time = (endTime - startTime) / 1000;
+            double time = mHour * 3600 + mMin * 60 + mSecond;
             double avgSpeed = (distance / time) * (3600 / 1000);
             avgSpeed = TimeUtil.formatData(avgSpeed);
 
@@ -606,6 +612,7 @@ public class MainActivity extends BaseActivity
             long timestamp = System.currentTimeMillis();
 
             trackItem.setStartTime(startTime);
+            trackItem.setDuration(time);
             trackItem.setEndTime(endTime);
             trackItem.setDistance(distance);
             trackItem.setAvgSpeed(avgSpeed);
@@ -667,8 +674,7 @@ public class MainActivity extends BaseActivity
                 //                trackItem.getRecordPointList().clear();
             }
         };
-        final ScheduledFuture saveRecodPointHandle =
-                scheduler.scheduleAtFixedRate(runnable, 0, 30, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(runnable, 0, 30, TimeUnit.SECONDS);
     }
 
 }

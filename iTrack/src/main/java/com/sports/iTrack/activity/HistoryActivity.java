@@ -175,7 +175,7 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
                     viewHolder.tvSportType.setText("?");
                 }
 
-                viewHolder.tvTime.setText(TimeUtil.getTimeSpan(item.getStartTime(), item.getEndTime()));
+                viewHolder.tvTime.setText(TimeUtil.formatTime((int)item.getDuration()));
             }
 
             return convertView;
@@ -183,17 +183,16 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
     }
 
     private List<TrackItem> getTrackList() {
-        List<TrackItem> trackItemList = DataSupport.order("endtime desc").find(TrackItem.class);
-        return trackItemList;
+        return DataSupport.order("endtime desc").find(TrackItem.class);
     }
 
     private void initUI(){
         tv_total_times.setText(Integer.toString(mTrackItems.size()));
         double total_distance = 0.0D;
-        long total_duration = 0;
+        double total_duration = 0;
         for (int i = 0; i < mTrackItems.size(); i++) {
             total_distance += mTrackItems.get(i).getDistance();
-            total_duration += (mTrackItems.get(i).getEndTime() - mTrackItems.get(i).getStartTime());
+            total_duration += mTrackItems.get(i).getDuration();
         }
 
         String str_distance = "";
@@ -204,7 +203,7 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
         }
 
         tv_total_distance.setText(str_distance);
-        tv_total_duration.setText(TimeUtil.formatTimestamp(total_duration, TimeUtil.HH_MM_SS));
+        tv_total_duration.setText(TimeUtil.formatTime((int) total_duration));
     }
 
 }
