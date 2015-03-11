@@ -10,7 +10,7 @@ import android.provider.Settings;
 /**
  * Created by aaron_lu on 2/12/15.
  */
-public class NetworkUtil {
+public class NetworkUtils {
 
     /**
      * 强制帮用户打开GPS

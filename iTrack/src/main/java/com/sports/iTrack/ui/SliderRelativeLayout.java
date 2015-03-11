@@ -71,7 +71,6 @@ public class SliderRelativeLayout extends RelativeLayout {
     public boolean onTouchEvent(MotionEvent event) {
         int x = (int) event.getX();
         int y = (int) event.getY();
-        Log.i(TAG, "onTouchEvent" + " X is " + x + " Y is " + y);
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 mLastMoveX = (int) event.getX();
@@ -99,7 +98,6 @@ public class SliderRelativeLayout extends RelativeLayout {
         //Log.e(TAG, "handleActionUpEvenet : invalidateDragImg" );
         int drawXCor = mLastMoveX - dragBitmap.getWidth();
         int drawYCor = tv_slider_icon.getTop();
-        Log.i(TAG, "invalidateDragImg" + " drawXCor " + drawXCor + " and drawYCor" + drawYCor);
         canvas.drawBitmap(dragBitmap, drawXCor < 0 ? 5 : drawXCor, drawYCor, null);
     }
 
@@ -111,14 +109,12 @@ public class SliderRelativeLayout extends RelativeLayout {
         if (isHit){
             tv_slider_icon.setVisibility(View.INVISIBLE);
         }
-        //Log.e(TAG, "handleActionDownEvenet : isHit" + isHit);
 
         return isHit;
     }
 
     private void handleActionUpEvent(MotionEvent event) {
         int x = (int) event.getX();
-        Log.e(TAG, "handleActionUpEvent : x -->" + x + "   getRight() " + getRight());
         boolean isSucess = Math.abs(x - getRight()) <= 300;
 
         if (isSucess) {
@@ -128,8 +124,6 @@ public class SliderRelativeLayout extends RelativeLayout {
         } else {
             mLastMoveX = x;
             int distance = x - tv_slider_icon.getRight();
-            Log.e(TAG, "handleActionUpEvent : mLastMoveX -->" + mLastMoveX + " distance -->"
-                    + distance);
             if (distance >= 0) {
                 mHandler.postDelayed(BackDragImgTask, BACK_DURATION);
             } else {
@@ -148,8 +142,6 @@ public class SliderRelativeLayout extends RelativeLayout {
 
         public void run() {
             mLastMoveX = mLastMoveX - (int) (BACK_DURATION * VE_HORIZONTAL);
-
-            Log.e(TAG, "BackDragImgTask ############# mLastMoveX " + mLastMoveX);
 
             invalidate();
             boolean shouldEnd = Math.abs(mLastMoveX - tv_slider_icon.getRight()) <= 8;

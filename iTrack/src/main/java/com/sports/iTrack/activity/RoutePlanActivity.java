@@ -6,6 +6,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.*;
+
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
@@ -20,7 +21,7 @@ import com.baidu.mapapi.search.geocode.*;
 import com.baidu.mapapi.search.route.*;
 import com.sports.iTrack.base.BaseActivity;
 import com.sports.iTrack.R;
-import com.sports.iTrack.utils.TimeUtil;
+import com.sports.iTrack.utils.TimeUtils;
 
 /**
  * Created by aaron_lu on 2/3/15.
@@ -48,10 +49,12 @@ public class RoutePlanActivity extends BaseActivity
     private TextView mTvEnd;
     private EditText mEtStart;
     private EditText mEtEnd;
+
     /**
      * @param savedInstanceState
      */
-    @Override public void onCreate(Bundle savedInstanceState) {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.route_plan_layout);
 
@@ -104,7 +107,8 @@ public class RoutePlanActivity extends BaseActivity
         // 定位初始化
         mLocClient = new LocationClient(this);
         mLocClient.registerLocationListener(new BDLocationListener() {
-            @Override public void onReceiveLocation(BDLocation bdLocation) {
+            @Override
+            public void onReceiveLocation(BDLocation bdLocation) {
                 if (bdLocation == null || mMapView == null)
                     return;
 
@@ -127,7 +131,8 @@ public class RoutePlanActivity extends BaseActivity
                 }
             }
 
-            @Override public void onReceivePoi(BDLocation bdLocation) {
+            @Override
+            public void onReceivePoi(BDLocation bdLocation) {
 
             }
         });
@@ -141,17 +146,20 @@ public class RoutePlanActivity extends BaseActivity
         mLocClient.start();
     }
 
-    @Override protected void onPause() {
+    @Override
+    protected void onPause() {
         mMapView.onPause();
         super.onPause();
     }
 
-    @Override protected void onResume() {
+    @Override
+    protected void onResume() {
         mMapView.onResume();
         super.onResume();
     }
 
-    @Override protected void onDestroy() {
+    @Override
+    protected void onDestroy() {
         // 退出时销毁定位
         mLocClient.stop();
         // 关闭定位图层
@@ -169,7 +177,8 @@ public class RoutePlanActivity extends BaseActivity
         return super.onCreateOptionsMenu(menu);
     }
 
-    @Override public boolean onPrepareOptionsMenu(Menu menu) {
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
         boolean drawerOpen = getDrawerLayout().isDrawerOpen(getLeftDrawer());
         menu.findItem(R.id.action_change).setVisible(!drawerOpen);
         menu.findItem(R.id.action_bus_plan).setVisible(!drawerOpen);
@@ -236,7 +245,8 @@ public class RoutePlanActivity extends BaseActivity
         }
     }
 
-    @Override public void onMapClick(LatLng latLng) {
+    @Override
+    public void onMapClick(LatLng latLng) {
         mBaiduMap.clear();
         String url =
                 "http://api.map.baidu.com/geocoder/v2/?ak=wMrKjqDGuhiBGF42w9I8EEZo&callback=renderReverse&location="
@@ -275,11 +285,13 @@ public class RoutePlanActivity extends BaseActivity
         geoCoder.reverseGeoCode(new ReverseGeoCodeOption().location(latLng));
     }
 
-    @Override public boolean onMapPoiClick(MapPoi mapPoi) {
+    @Override
+    public boolean onMapPoiClick(MapPoi mapPoi) {
         return false;
     }
 
-    @Override public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
+    @Override
+    public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
 
         if (walkingRouteResult == null
                 || walkingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
@@ -296,17 +308,18 @@ public class RoutePlanActivity extends BaseActivity
             overlay.zoomToSpan();
 
             Toast.makeText(RoutePlanActivity.this,
-                    "线路距离:" + TimeUtil.formatData(
+                    "线路距离:" + TimeUtils.formatData(
                             walkingRouteResult.getRouteLines().get(0).getDistance() / 1000)
                             + "km,耗时:" +
-                            TimeUtil.formatTime(
+                            TimeUtils.formatTime(
                                     walkingRouteResult.getRouteLines().get(0).getDuration()),
                     Toast.LENGTH_LONG).show();
         }
 
     }
 
-    @Override public void onGetTransitRouteResult(TransitRouteResult transitRouteResult) {
+    @Override
+    public void onGetTransitRouteResult(TransitRouteResult transitRouteResult) {
 
         if (transitRouteResult == null
                 || transitRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
@@ -323,17 +336,18 @@ public class RoutePlanActivity extends BaseActivity
             overlay.zoomToSpan();
 
             Toast.makeText(RoutePlanActivity.this,
-                    "线路距离:" + TimeUtil.formatData(
+                    "线路距离:" + TimeUtils.formatData(
                             transitRouteResult.getRouteLines().get(0).getDistance() / 1000)
                             + "km,耗时:" +
-                            TimeUtil.formatTime(
+                            TimeUtils.formatTime(
                                     transitRouteResult.getRouteLines().get(0).getDuration()),
                     Toast.LENGTH_LONG).show();
         }
 
     }
 
-    @Override public void onGetDrivingRouteResult(DrivingRouteResult drivingRouteResult) {
+    @Override
+    public void onGetDrivingRouteResult(DrivingRouteResult drivingRouteResult) {
 
         if (drivingRouteResult == null
                 || drivingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
@@ -350,10 +364,10 @@ public class RoutePlanActivity extends BaseActivity
             overlay.zoomToSpan();
 
             Toast.makeText(RoutePlanActivity.this,
-                    "线路距离:" + TimeUtil.formatData(
+                    "线路距离:" + TimeUtils.formatData(
                             drivingRouteResult.getRouteLines().get(0).getDistance() / 1000)
                             + "km,耗时:" +
-                            TimeUtil.formatTime(
+                            TimeUtils.formatTime(
                                     drivingRouteResult.getRouteLines().get(0).getDuration()),
                     Toast.LENGTH_LONG).show();
         }

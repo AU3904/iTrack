@@ -1,13 +1,9 @@
 package com.sports.iTrack.utils;
 
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
- * Created by aaron_lu on 2/10/15.
- */
-public class TimeUtil {
+public class TimeUtils {
 
     public final static String HH_MM_SS = "HH:mm:ss";
     public final static String YYYY_MM_DD = "yyyy-MM-dd HH:mm";

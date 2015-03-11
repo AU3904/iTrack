@@ -18,7 +18,7 @@ import com.sports.iTrack.activity.AboutActivity;
 import com.sports.iTrack.activity.HistoryActivity;
 import com.sports.iTrack.activity.MeActivity;
 import com.sports.iTrack.activity.RoutePlanActivity;
-import com.sports.iTrack.utils.PackageUtil;
+import com.sports.iTrack.utils.PackageUtils;
 import com.sports.iTrack.utils.constant;
 
 /**
@@ -44,7 +44,6 @@ public class BaseActivity extends Activity {
             R.drawable.ic_leftdrawer_route, R.drawable.ic_leftdrawer_history, R.drawable.ic_leftdrawer_music,
             R.drawable.ic_leftdrawer_troops,R.drawable.ic_leftdrawer_about, R.drawable.ic_leftdrawer_about };
 
-    //    private SparseArray<String> mLeftResource = new SparseArray<String>();
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,8 +86,6 @@ public class BaseActivity extends Activity {
                 this.getBaseContext().getResources().getDrawable(R.drawable.BackBar));
         getActionBar().setHomeButtonEnabled(true);
 
-        // ActionBarDrawerToggle ties together the the proper interactions
-        // between the sliding drawer and the action bar app icon
         mDrawerToggle = new ActionBarDrawerToggle(
                 this,                  /* host Activity */
                 mDrawerLayout,         /* DrawerLayout object */
@@ -174,25 +171,25 @@ public class BaseActivity extends Activity {
         // update the main content by replacing fragments
         switch (position) {
             case constant.LOGIN_POSITION:
-                PackageUtil.startActivity(this, MeActivity.class);
+                PackageUtils.startActivity(this, MeActivity.class);
                 break;
             case constant.RECORD_POSITION:
-                PackageUtil.startActivity(this, MainActivity.class);
+                PackageUtils.startActivity(this, MainActivity.class);
                 break;
             case constant.PLAN_POSITION:
-                PackageUtil.startActivity(this, RoutePlanActivity.class);
+                PackageUtils.startActivity(this, RoutePlanActivity.class);
                 break;
             case constant.HISTORY_POSITION:
-                PackageUtil.startActivity(this, HistoryActivity.class);
+                PackageUtils.startActivity(this, HistoryActivity.class);
                 break;
             case constant.MUSIC_POSITION:
-                PackageUtil.openApp(this, "com.tencent.qqmusic");
+                PackageUtils.openApp(this, "com.tencent.qqmusic");
                 break;
             case constant.TROOPS_POSITION:
-                PackageUtil.startActivity(this, TroopsActivity.class);
+                PackageUtils.startActivity(this, TroopsActivity.class);
                 break;
             case constant.ABOUT_POSITON:
-                PackageUtil.startActivity(this, AboutActivity.class);
+                PackageUtils.startActivity(this, AboutActivity.class);
                 break;
             default:
                 break;

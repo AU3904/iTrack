@@ -7,7 +7,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,7 +19,8 @@ import com.github.mikephil.charting.charts.LineChart;
 import com.sports.iTrack.R;
 import com.sports.iTrack.model.RecordPoint;
 import com.sports.iTrack.model.TrackItem;
-import com.sports.iTrack.utils.TimeUtil;
+import com.sports.iTrack.utils.TimeUtils;
+
 import org.litepal.crud.DataSupport;
 
 import java.util.ArrayList;
@@ -101,7 +101,6 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                // app icon in action bar clicked; go home
                 finish();
                 return true;
             default:
@@ -112,9 +111,6 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
     private class DataGetTask extends AsyncTask<Long, Void, Void> {
 
         @Override protected Void doInBackground(Long... params) {
-            /**
-             * 作激进查询，会导致数据无法保存到数据库, 故trackitem_id 单独进行查询
-             */
             List<TrackItem> trackItemList = DataSupport.where("id = ?",
                     String.valueOf(params[0])).find(
                     TrackItem.class);
@@ -145,12 +141,12 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
         }
     }
 
-    LineChart[] mCharts = new LineChart[1]; // 4条数据
+/*    LineChart[] mCharts = new LineChart[1]; // 4条数据
     //    Typeface mTf; // 自定义显示字体
     int[] mColors = new int[] { Color.rgb(137, 230, 81), Color.rgb(240, 240, 30),//
             Color.rgb(89, 199, 250), Color.rgb(250, 104, 104) }; // 自定义颜色
 
-    String[] mMonths = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
+    String[] mMonths = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };*/
 
     /**
      * 初始化所有的textview
@@ -302,19 +298,19 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
             if (mCurrentTrackItem == null)
                 return;
             tvEndTime.setText(
-                    TimeUtil.formatTimestamp(mCurrentTrackItem.getTimestamp(),
-                            TimeUtil.YYYY_MM_DD));
-            tvSportTime.setText(TimeUtil.formatTime((int)mCurrentTrackItem.getDuration()));
+                    TimeUtils.formatTimestamp(mCurrentTrackItem.getTimestamp(),
+                            TimeUtils.YYYY_MM_DD));
+            tvSportTime.setText(TimeUtils.formatTime((int) mCurrentTrackItem.getDuration()));
 
             String str_distance = "";
             if (mCurrentTrackItem.getDistance() > 1000) {
-                str_distance = TimeUtil.formatData(mCurrentTrackItem.getDistance() / 1000) + "km";
+                str_distance = TimeUtils.formatData(mCurrentTrackItem.getDistance() / 1000) + "km";
             } else {
-                str_distance = TimeUtil.formatData(mCurrentTrackItem.getDistance()) + "m";
+                str_distance = TimeUtils.formatData(mCurrentTrackItem.getDistance()) + "m";
             }
             tvDistance.setText(str_distance);
 
-            tvSpeedRange.setText(TimeUtil.formatData(mCurrentTrackItem.getMaxSpeed()) + "km/h");
+            tvSpeedRange.setText(TimeUtils.formatData(mCurrentTrackItem.getMaxSpeed()) + "km/h");
             tvAltitudeRange.setText(
                     mCurrentTrackItem.getMinAltitude() + "m/" + mCurrentTrackItem.getMaxAltitude()
                             + "m");

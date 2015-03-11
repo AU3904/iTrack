@@ -2,12 +2,12 @@ package com.sports.iTrack.activity;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
@@ -23,9 +23,11 @@ import com.sports.iTrack.R;
 import com.sports.iTrack.base.BaseActivity;
 import com.sports.iTrack.model.RecordPoint;
 import com.sports.iTrack.model.TrackItem;
+import com.sports.iTrack.service.LockService;
 import com.sports.iTrack.ui.SliderRelativeLayout;
-import com.sports.iTrack.utils.NetworkUtil;
-import com.sports.iTrack.utils.TimeUtil;
+import com.sports.iTrack.utils.NetworkUtils;
+import com.sports.iTrack.utils.TimeUtils;
+
 import org.litepal.crud.DataSupport;
 
 import java.util.ArrayList;
@@ -60,7 +62,6 @@ public class MainActivity extends BaseActivity
 
     private long mExitTime;
 
-    private double mCurrentAvgSpeed;
     private double mCurrentSpeed;
     private double mCurrentDistance = 0.0D;
 
@@ -87,15 +88,12 @@ public class MainActivity extends BaseActivity
     private AnimationDrawable animArrowDrawable = null;
 
 
-    private TrackItem trackItem = new TrackItem();
+    private TrackItem trackItem = null;
     private MyLocationListenner myListener = new MyLocationListenner();
     private List<LatLng> backupPts = new ArrayList<LatLng>();
     private SparseArray<BDLocation> locationSparseArray = new SparseArray<BDLocation>();
 
     private MyThread mCounterThread = new MyThread();
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
-
 
     /**
      * Called when the activity is first created.
@@ -104,86 +102,52 @@ public class MainActivity extends BaseActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-//        NetworkUtil.openGPS(this);//强制打开GPS
 
-        mBtEnd = (Button) findViewById(R.id.bt_end);
-        mBtGoon = (Button) findViewById(R.id.bt_goon);
-        mBtStart = (Button) findViewById(R.id.bt_start);
-        mBtEnd.setOnClickListener(this);
-        mBtGoon.setOnClickListener(this);
-        mBtStart.setOnClickListener(this);
+        initView();
 
+        initMapAndLocClient();
+    }
 
-        mMapView = (MapView) findViewById(R.id.bmapView);
-        tv_cal = (TextView) findViewById(R.id.tv_kcal_content);
-        tv_distance = (TextView) findViewById(R.id.tv_distance_content);
-        tv_speed = (TextView) findViewById(R.id.tv_speed_content);
-        tv_duration_hour = (TextView) findViewById(R.id.tv_duration_hour);
-        tv_duration_min = (TextView) findViewById(R.id.tv_duration_min);
-        tv_duration_second = (TextView) findViewById(R.id.tv_duration_second);
+    @Override protected void onResume() {
+        super.onResume();
+        mMapView.onResume();
+        handler.postDelayed(AnimationDrawableTask, 300);
+    }
 
-        mllEndGoon = (LinearLayout) findViewById(R.id.ll_end_goon);
-        sliderLayout = (SliderRelativeLayout)findViewById(R.id.slider_layout);
-        imgView_getup_arrow = (ImageView)findViewById(R.id.getup_arrow);
-        animArrowDrawable = (AnimationDrawable) imgView_getup_arrow.getBackground() ;
-        sliderLayout.setMainHandler(handler);
+    @Override protected void onPause() {
+        super.onPause();
+        mMapView.onPause();
+        animArrowDrawable.stop();
+    }
 
-        mBtStart.setVisibility(View.VISIBLE);
-        mllEndGoon.setVisibility(View.GONE);
-        sliderLayout.setVisibility(View.GONE);
+    @Override protected void onDestroy() {
+        Intent intent = new Intent(this, LockService.class);
+        intent.putExtra("trackStartFlag", startTrack);
+        this.stopService(intent);
 
-        mBaiduMap = mMapView.getMap();
+        mLocClient.unRegisterLocationListener(myListener);
+        // 退出时销毁定位
+        mLocClient.stop();
+        // 关闭定位图层
+        mBaiduMap.setMyLocationEnabled(false);
+        mMapView.onDestroy();
+        mMapView = null;
 
-        //        BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromResource(
-        //                R.drawable.location_marker);
-        mBaiduMap.setMyLocationConfigeration(new MyLocationConfiguration(
-                MyLocationConfiguration.LocationMode.NORMAL, true, null));
-        mBaiduMap = mMapView.getMap();
-        // 开启定位图层
-        mBaiduMap.setMyLocationEnabled(true);
-        mBaiduMap.setMapStatus(
-                MapStatusUpdateFactory.newMapStatus(new MapStatus.Builder().zoom(16).build()));
-
-        // 定位初始化
-        mLocClient = new LocationClient(this);
-        mLocClient.registerLocationListener(myListener);
-        LocationClientOption option = new LocationClientOption();
-        option.setOpenGps(true);// 打开gps
-        option.setCoorType("bd09ll"); // 设置坐标类型
-        option.setScanSpan(5000);
-        option.setAddrType("all");
-        option.setPriority(LocationClientOption.GpsFirst);
-        mLocClient.setLocOption(option);
-        mLocClient.start();
+        super.onDestroy();
     }
 
     /**
      * 定位SDK监听函数
      */
-    public class MyLocationListenner implements BDLocationListener {
+    private class MyLocationListenner implements BDLocationListener {
 
         @Override
         public void onReceiveLocation(BDLocation location) {
 
-            // map view 销毁后不在处理新接收的位置
-            if (location == null || mMapView == null)
-                return;
+            showLocOnFirst(location);
 
-            MyLocationData locData = new MyLocationData.Builder().accuracy(location.getRadius())
-                    .direction(location.getDerect()).latitude(location.getLatitude())
-                    .longitude(location.getLongitude()).build();
-
-            mBaiduMap.setMyLocationData(locData);
-            if (isFirstLoc) {
-                isFirstLoc = false;
-                LatLng ll = new LatLng(location.getLatitude(),
-                        location.getLongitude());
-
-                MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll);
-                mBaiduMap.animateMapStatus(u);
-            }
-
-            if (location.getSpeed() != 0) {
+            mCurrentSpeed = TimeUtils.formatData(location.getSpeed());
+            if (mCurrentSpeed != 0) {
                 mCounterThread.doResume();
             }
 
@@ -225,9 +189,8 @@ public class MainActivity extends BaseActivity
 
                 //刷新界面，显示距离(KM) 以及当前速度
                 mCurrentDistance += distance;
-                tv_distance.setText(Double.toString(TimeUtil.formatData(mCurrentDistance / 1000)));
+                tv_distance.setText(Double.toString(TimeUtils.formatData(mCurrentDistance / 1000)));
 
-                mCurrentSpeed = TimeUtil.formatData(location.getSpeed());
                 tv_speed.setText(Double.toString(mCurrentSpeed));
 
                 //实时显示路径,每四步 画一次
@@ -255,21 +218,22 @@ public class MainActivity extends BaseActivity
     @Override public void
     onClick(View v) {
         if (v.getId() == R.id.button2) {
-            mBaiduMap.clear();
+            //for test
+            /*mBaiduMap.clear();
             if (backupPts == null)
                 return;
             OverlayOptions polylineOption = new PolylineOptions().color(0xAA0000FF).width(
                     10).points(backupPts);
-            mBaiduMap.addOverlay(polylineOption);
+            mBaiduMap.addOverlay(polylineOption);*/
         } else if (v.getId() == R.id.bt_start) {
 
-            if (!NetworkUtil.isOpenGPS(this)) {
+            if (!NetworkUtils.isOpenGPS(this)) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("GPS 尚未打开，是否打开?")
                         .setCancelable(false)
                         .setPositiveButton("打开", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                NetworkUtil.openGPS(getApplicationContext());
+                                NetworkUtils.openGPS(getApplicationContext());
                             }
                         })
                         .setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -286,6 +250,7 @@ public class MainActivity extends BaseActivity
 
                 setClickable(false);
 
+                trackItem = new TrackItem();
                 startTrack = true;
 
                 if (mCounterThread.isSuspend()) {
@@ -294,6 +259,10 @@ public class MainActivity extends BaseActivity
                 if (!mCounterThread.isAlive()) {
                     mCounterThread.start();
                 }
+
+//                Intent intent = new Intent(this, LockService.class);
+//                intent.putExtra("trackStartFlag", startTrack);
+//                this.startService(intent);
 
                 /**
                  * 只调一次，后续自动保存数据
@@ -306,15 +275,15 @@ public class MainActivity extends BaseActivity
             mllEndGoon.setVisibility(View.GONE);
             sliderLayout.setVisibility(View.GONE);
 
-
             startTrack = false;
 
-            /**
-             * 如果线程没有挂起，则暂停线程
-             */
             if (!mCounterThread.isSuspend()) {
                 mCounterThread.doSuspend();
             }
+
+            Intent intent = new Intent(this, LockService.class);
+            intent.putExtra("trackStartFlag", startTrack);
+            this.stopService(intent);
 
             new SaveTrackItemTask().execute();
 
@@ -335,17 +304,6 @@ public class MainActivity extends BaseActivity
             }
         }
     }
-
-    private void setClickable(boolean clickable) {
-        /**
-         * 屏蔽所有事件
-         */
-        mMapView.setClickable(clickable);
-        getActionBar().setHomeButtonEnabled(clickable);
-        mBtStart.setClickable(clickable);
-        mllEndGoon.setClickable(clickable);
-    }
-
 
     public boolean onKeyDown(int keyCode ,KeyEvent event){
 
@@ -368,59 +326,13 @@ public class MainActivity extends BaseActivity
         }
     }
 
-
-    @Override protected void onResume() {
-        super.onResume();
-        mMapView.onResume();
-        handler.postDelayed(AnimationDrawableTask, 300);
-    }
-
-    @Override protected void onPause() {
-        super.onPause();
-        mMapView.onPause();
-        animArrowDrawable.stop();
-    }
-
-    @Override protected void onDestroy() {
-        // 退出时销毁定位
-        mLocClient.stop();
-        // 关闭定位图层
-        mBaiduMap.setMyLocationEnabled(false);
-        mMapView.onDestroy();
-        mMapView = null;
-
-        super.onDestroy();
-    }
-
-    private boolean isReasonableLocation(BDLocation lastLocation, BDLocation newLocation) {
-        double lngRate = Math.abs(lastLocation.getLongitude() - newLocation.getLongitude());
-        double latRate = Math.abs(lastLocation.getLatitude() - newLocation.getLatitude());
-        if (lngRate > ERROR_RATE || latRate > ERROR_RATE) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-
     final Handler handler = new Handler(){
         public void handleMessage(Message msg){
             switch (msg.what) {
                 case MSG_SECOND:
                     if (startTrack && !mCounterThread.isSuspend()) {
                         mSecond++;
-                        if (mSecond < 10) {
-                            tv_duration_second.setText("0" + mSecond);
-                        } else if (mSecond > 9 && mSecond < 60) {
-                            tv_duration_second.setText("" + mSecond);
-                        } else if (mSecond > 59) {
-                            mSecond = 0;
-                            tv_duration_second.setText("0" + mSecond);
-                            mMin++;
-                            Message message = new Message();
-                            message.what = MSG_MIN;
-                            handler.sendMessage(message);
-                        }
+                        setTimeTextAndRoundOff(tv_duration_second, mSecond, mMin, MSG_MIN);
                     }
 
                     break;
@@ -431,18 +343,7 @@ public class MainActivity extends BaseActivity
                         handler.sendMessage(message0);
                     }
 
-                    if (mMin < 10) {
-                        tv_duration_min.setText("0" + mMin);
-                    } else if (mMin > 9 && mMin < 60) {
-                        tv_duration_min.setText("" + mMin);
-                    } else if (mMin > 59) {
-                        mMin = 0;
-                        tv_duration_min.setText("0" + mMin);
-                        mHour++;
-                        Message message = new Message();
-                        message.what = MSG_HOUR;
-                        handler.sendMessage(message);
-                    }
+                    setTimeTextAndRoundOff(tv_duration_min, mMin, mHour, MSG_HOUR);
                     break;
                 case MSG_HOUR:
                     if (mHour < 9) {
@@ -454,8 +355,8 @@ public class MainActivity extends BaseActivity
                 case MSG_CAL:
                     int t = mHour * 60 * 60 + mMin * 60 + mSecond;
                     double avgSpeed = (mCurrentDistance / t) * (3600 / 1000);
-                    mCurrentAvgSpeed = TimeUtil.formatData(avgSpeed);
-                    mKal = TimeUtil.getKal(mCurrentAvgSpeed, (mHour * 2 + mMin), 65);
+                    double mCurrentAvgSpeed = TimeUtils.formatData(avgSpeed);
+                    mKal = TimeUtils.getKal(mCurrentAvgSpeed, (mHour * 2 + mMin), 65);
                     tv_cal.setText(mKal + "");
 
                     break;
@@ -475,23 +376,7 @@ public class MainActivity extends BaseActivity
                     setClickable(true);
                     break;
                 case MSG_RESET:
-                    tv_duration_second.setText("00");
-                    tv_duration_min.setText("00");
-                    tv_duration_hour.setText("00");
-                    tv_cal.setText("0");
-                    tv_speed.setText("0.00");
-                    tv_distance.setText("0.00");
-
-                    startTrack = false;
-                    mSecond = 0;
-                    mMin = 0;
-                    mHour = 0;
-                    previousPosition = 0;
-                    index = 0;
-                    mCurrentAvgSpeed = 0;
-                    mCurrentSpeed = 0;
-                    mCurrentDistance = 0.0D;
-                    isFirstLoc = true;
+                    reset();
                     break;
                 default:
                     break;
@@ -508,7 +393,7 @@ public class MainActivity extends BaseActivity
         }
     };
 
-    public class MyThread extends Thread{
+    private class MyThread extends Thread{
 
         private boolean mPauseTrack = false;
 
@@ -529,7 +414,7 @@ public class MainActivity extends BaseActivity
                         }
 
                     } else {
-                        wait();
+                        //wait();
                     }
                 }catch (Exception e) {
                     e.printStackTrace();
@@ -561,79 +446,11 @@ public class MainActivity extends BaseActivity
     private class SaveTrackItemTask extends AsyncTask<Void, Void, String> {
 
         @Override protected String doInBackground(Void... params) {
-
-            List<RecordPoint> recordPoints = trackItem.getRecordPointList();
-            if (recordPoints == null || recordPoints.size() == 0)
-                return "没有数据，保存失败";
-            long startTime = recordPoints.get(0).getTimestamp();
-            long endTime = recordPoints.get(recordPoints.size() - 1).getTimestamp();
-
-            double distance = 0.0D;
-
-            ArrayList<Float> speeds = new ArrayList<Float>();
-            ArrayList<Double> altitudes = new ArrayList<Double>();
-            for (int i = 0; i < recordPoints.size(); i++) {
-                speeds.add(recordPoints.get(i).getSpeed());
-                altitudes.add(recordPoints.get(i).getAltitude());
-
-                distance += recordPoints.get(i).getDistance();
-            }
-
-            if (distance == 0) {
-                return "运动距离为0，不保存数据";
-            }
-
-            distance = TimeUtil.formatData(distance);
-
-            /**
-             * time 包含了中途停止的时间
-             * avgSpeed 单位：km/h
-             *
-             * 为了避免time 过短 avgSpeed 趋于无穷，
-             * 先计算m/s ，再转化为 km/h
-             */
-            //全程耗时,单位:秒
-            double time = mHour * 3600 + mMin * 60 + mSecond;
-            double avgSpeed = (distance / time) * (3600 / 1000);
-            avgSpeed = TimeUtil.formatData(avgSpeed);
-
-            Collections.sort(speeds);
-            double maxSpeed = speeds.get(recordPoints.size() - 1);
-            double minSpeed = speeds.get(0);
-
-            Collections.sort(altitudes);
-            double maxAltitude = altitudes.get(recordPoints.size() - 1);
-            double minAltitude = altitudes.get(0);
-
-            int sportTpye = 1;
-            int recordPointsCount = recordPoints.size();
-
-            String discription = "我de骑行记录";
-            long timestamp = System.currentTimeMillis();
-
-            trackItem.setStartTime(startTime);
-            trackItem.setDuration(time);
-            trackItem.setEndTime(endTime);
-            trackItem.setDistance(distance);
-            trackItem.setAvgSpeed(avgSpeed);
-            trackItem.setMaxSpeed(maxSpeed);
-            trackItem.setMinSpeed(minSpeed);
-            trackItem.setMaxAltitude(maxAltitude);
-            trackItem.setMinAltitude(minAltitude);
-            trackItem.setSportTpye(sportTpye);
-            trackItem.setRecordPointsCount(recordPointsCount);
-            trackItem.setDiscription(discription);
-            trackItem.setTimestamp(timestamp);
-            trackItem.setKal(mKal);
-            trackItem.save();
-            return "保存成功";
+            return saveTrackItem();
         }
 
         @Override protected void onPostExecute(String s) {
             Toast.makeText(MainActivity.this, s, Toast.LENGTH_LONG).show();
-            /**
-             * 运动结束，保存数据之后，清除数据；
-             */
             if (!startTrack) {
                 backupPts.clear();
                 locationSparseArray.clear();
@@ -650,31 +467,227 @@ public class MainActivity extends BaseActivity
      * 2. 退到后台
      * 3. 异常退出
      */
-    public void saveRecodPoint() {
+    private void saveRecodPoint() {
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
         final Runnable runnable = new Runnable() {
             public void run() {
                 if (locationSparseArray == null || trackItem == null) {
                     return;
                 }
 
-                /**
-                 * 用于保存所有数据
-                 */
                 DataSupport.saveAll(trackItem.getRecordPointList());
 
-                /**
-                 * 保存完了之后，清理掉数据, 为了防止容器过多对象，
-                 * TODO： locationSparseArray 最后一个location 与下一次计算的location 直接的distance 为 0
-                 */
-                //                List<BDLocation> temp = new ArrayList<BDLocation>();
-                //                temp.add(locationSparseArray.get(locationSparseArray.size() - 1));
                 locationSparseArray.clear();
-                //                locationSparseArray.put(0, temp.get(0));
-
-                //                trackItem.getRecordPointList().clear();
             }
         };
         scheduler.scheduleAtFixedRate(runnable, 0, 30, TimeUnit.SECONDS);
     }
 
+
+    private void initView(){
+        mBtEnd = (Button) findViewById(R.id.bt_end);
+        mBtGoon = (Button) findViewById(R.id.bt_goon);
+        mBtStart = (Button) findViewById(R.id.bt_start);
+        mBtEnd.setOnClickListener(this);
+        mBtGoon.setOnClickListener(this);
+        mBtStart.setOnClickListener(this);
+
+
+        mMapView = (MapView) findViewById(R.id.bmapView);
+        tv_cal = (TextView) findViewById(R.id.tv_kcal_content);
+        tv_distance = (TextView) findViewById(R.id.tv_distance_content);
+        tv_speed = (TextView) findViewById(R.id.tv_speed_content);
+        tv_duration_hour = (TextView) findViewById(R.id.tv_duration_hour);
+        tv_duration_min = (TextView) findViewById(R.id.tv_duration_min);
+        tv_duration_second = (TextView) findViewById(R.id.tv_duration_second);
+
+        mllEndGoon = (LinearLayout) findViewById(R.id.ll_end_goon);
+        sliderLayout = (SliderRelativeLayout)findViewById(R.id.slider_layout);
+        imgView_getup_arrow = (ImageView)findViewById(R.id.getup_arrow);
+        animArrowDrawable = (AnimationDrawable) imgView_getup_arrow.getBackground() ;
+        sliderLayout.setMainHandler(handler);
+
+        mBtStart.setVisibility(View.VISIBLE);
+        mllEndGoon.setVisibility(View.GONE);
+        sliderLayout.setVisibility(View.GONE);
+    }
+
+    private void initMapAndLocClient(){
+        mBaiduMap = mMapView.getMap();
+
+        //        BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromResource(
+        //                R.drawable.location_marker);
+        mBaiduMap.setMyLocationConfigeration(new MyLocationConfiguration(
+                MyLocationConfiguration.LocationMode.NORMAL, true, null));
+        mBaiduMap = mMapView.getMap();
+        // 开启定位图层
+        mBaiduMap.setMyLocationEnabled(true);
+        mBaiduMap.setMapStatus(
+                MapStatusUpdateFactory.newMapStatus(new MapStatus.Builder().zoom(16).build()));
+
+        // 定位初始化
+        mLocClient = new LocationClient(this);
+        mLocClient.registerLocationListener(myListener);
+        LocationClientOption option = new LocationClientOption();
+        option.setOpenGps(true);// 打开gps
+        option.setCoorType("bd09ll"); // 设置坐标类型
+        option.setScanSpan(5000);
+        option.setAddrType("all");
+        option.setPriority(LocationClientOption.GpsFirst);
+        mLocClient.setLocOption(option);
+        mLocClient.start();
+    }
+
+    private void setClickable(boolean clickable) {
+        /**
+         * 屏蔽所有事件
+         */
+        mMapView.setClickable(clickable);
+        getActionBar().setHomeButtonEnabled(clickable);
+        mBtStart.setClickable(clickable);
+        mllEndGoon.setClickable(clickable);
+    }
+
+    private void showLocOnFirst(BDLocation location){
+        // map view 销毁后不在处理新接收的位置
+        if (location == null || mMapView == null)
+            return;
+
+        MyLocationData locData = new MyLocationData.Builder().accuracy(location.getRadius())
+                .direction(location.getDerect()).latitude(location.getLatitude())
+                .longitude(location.getLongitude()).build();
+
+        mBaiduMap.setMyLocationData(locData);
+        if (isFirstLoc) {
+            isFirstLoc = false;
+            LatLng ll = new LatLng(location.getLatitude(),
+                    location.getLongitude());
+
+            MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll);
+            mBaiduMap.animateMapStatus(u);
+        }
+    }
+
+    private void reset(){
+        tv_duration_second.setText("00");
+        tv_duration_min.setText("00");
+        tv_duration_hour.setText("00");
+        tv_cal.setText("0");
+        tv_speed.setText("0.00");
+        tv_distance.setText("0.00");
+
+        startTrack = false;
+        mSecond = 0;
+        mMin = 0;
+        mHour = 0;
+        previousPosition = 0;
+        index = 0;
+        mCurrentSpeed = 0;
+        mCurrentDistance = 0.0D;
+        isFirstLoc = true;
+    }
+
+    private String saveTrackItem() {
+        String saveResult = "";
+        List<RecordPoint> recordPoints = trackItem.getRecordPointList();
+        if (recordPoints == null || recordPoints.size() == 0) {
+            saveResult = "没有数据，保存失败";
+            return saveResult;
+        }
+
+        long startTime = recordPoints.get(0).getTimestamp();
+        long endTime = recordPoints.get(recordPoints.size() - 1).getTimestamp();
+
+        double distance = 0.0D;
+
+        ArrayList<Float> speeds = new ArrayList<Float>();
+        ArrayList<Double> altitudes = new ArrayList<Double>();
+        for (int i = 0; i < recordPoints.size(); i++) {
+            speeds.add(recordPoints.get(i).getSpeed());
+            altitudes.add(recordPoints.get(i).getAltitude());
+
+            distance += recordPoints.get(i).getDistance();
+        }
+
+        if (distance == 0) {
+            saveResult = "运动距离为0，不保存数据";
+            return saveResult;
+        }
+
+        distance = TimeUtils.formatData(distance);
+
+        /**
+         * time 包含了中途停止的时间
+         * avgSpeed 单位：km/h
+         *
+         * 为了避免time 过短 avgSpeed 趋于无穷，
+         * 先计算m/s ，再转化为 km/h
+         */
+        //全程耗时,单位:秒
+        double time = mHour * 3600 + mMin * 60 + mSecond;
+        double avgSpeed = (distance / time) * (3600 / 1000);
+        avgSpeed = TimeUtils.formatData(avgSpeed);
+
+        Collections.sort(speeds);
+        double maxSpeed = speeds.get(recordPoints.size() - 1);
+        double minSpeed = speeds.get(0);
+
+        Collections.sort(altitudes);
+        double maxAltitude = altitudes.get(recordPoints.size() - 1);
+        double minAltitude = altitudes.get(0);
+
+        int sportTpye = 1;
+        int recordPointsCount = recordPoints.size();
+
+        String discription = "我de骑行记录";
+        long timestamp = System.currentTimeMillis();
+
+        trackItem.setStartTime(startTime);
+        trackItem.setDuration(time);
+        trackItem.setEndTime(endTime);
+        trackItem.setDistance(distance);
+        trackItem.setAvgSpeed(avgSpeed);
+        trackItem.setMaxSpeed(maxSpeed);
+        trackItem.setMinSpeed(minSpeed);
+        trackItem.setMaxAltitude(maxAltitude);
+        trackItem.setMinAltitude(minAltitude);
+        trackItem.setSportTpye(sportTpye);
+        trackItem.setRecordPointsCount(recordPointsCount);
+        trackItem.setDiscription(discription);
+        trackItem.setTimestamp(timestamp);
+        trackItem.setKal(mKal);
+        trackItem.save();
+        trackItem = null;
+        saveResult = "保存成功";
+        return saveResult;
+    }
+
+    private boolean isReasonableLocation(BDLocation lastLocation, BDLocation newLocation) {
+        double lngRate = Math.abs(lastLocation.getLongitude() - newLocation.getLongitude());
+        double latRate = Math.abs(lastLocation.getLatitude() - newLocation.getLatitude());
+        if (lngRate > ERROR_RATE || latRate > ERROR_RATE) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private void setTimeTextAndRoundOff(TextView tv, int t1, int t2, int msg) {
+        if (tv == null) {
+            return;
+        }
+        if (t1 < 10) {
+            tv.setText("0" + t1);
+        } else if (t1 > 9 && t1 < 60) {
+            tv.setText("" + t1);
+        } else if (t1 > 59) {
+            t1 = 0;
+            tv.setText("0" + t1);
+            t2++;
+            Message message = new Message();
+            message.what = msg;
+            handler.sendMessage(message);
+        }
+    }
 }

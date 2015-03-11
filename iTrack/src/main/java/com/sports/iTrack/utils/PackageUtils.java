@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by aaron_lu on 2/12/15.
  */
-public class PackageUtil {
+public class PackageUtils {
 
 
     public static void openApp(Context context, String pm) {

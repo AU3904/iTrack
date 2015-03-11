@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,7 +16,8 @@ import android.widget.*;
 import com.sports.iTrack.base.BaseActivity;
 import com.sports.iTrack.R;
 import com.sports.iTrack.model.TrackItem;
-import com.sports.iTrack.utils.TimeUtil;
+import com.sports.iTrack.utils.TimeUtils;
+
 import org.litepal.crud.DataSupport;
 
 import java.util.ArrayList;
@@ -161,13 +161,13 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
             if (item != null) {
                 String str_distance = "";
                 if (item.getDistance() > 1000) {
-                    str_distance = TimeUtil.formatData(item.getDistance() / 1000) + "km";
+                    str_distance = TimeUtils.formatData(item.getDistance() / 1000) + "km";
                 } else {
-                    str_distance = TimeUtil.formatData(item.getDistance()) + "m";
+                    str_distance = TimeUtils.formatData(item.getDistance()) + "m";
                 }
                 viewHolder.tvDistance.setText(str_distance);
-                viewHolder.tvEndTime.setText(TimeUtil.formatTimestamp(item.getEndTime(),
-                        TimeUtil.YYYY_MM_DD));
+                viewHolder.tvEndTime.setText(TimeUtils.formatTimestamp(item.getEndTime(),
+                        TimeUtils.YYYY_MM_DD));
 
                 if (item.getSportTpye() == 1) {
                     viewHolder.tvSportType.setText("骑行:");
@@ -175,7 +175,7 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
                     viewHolder.tvSportType.setText("?");
                 }
 
-                viewHolder.tvTime.setText(TimeUtil.formatTime((int)item.getDuration()));
+                viewHolder.tvTime.setText(TimeUtils.formatTime((int) item.getDuration()));
             }
 
             return convertView;
@@ -197,13 +197,13 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
 
         String str_distance = "";
         if (total_distance > 1000) {
-            str_distance = TimeUtil.formatData(total_distance / 1000) + "km";
+            str_distance = TimeUtils.formatData(total_distance / 1000) + "km";
         } else {
-            str_distance = TimeUtil.formatData(total_distance) + "m";
+            str_distance = TimeUtils.formatData(total_distance) + "m";
         }
 
         tv_total_distance.setText(str_distance);
-        tv_total_duration.setText(TimeUtil.formatTime((int) total_duration));
+        tv_total_duration.setText(TimeUtils.formatTime((int) total_duration));
     }
 
 }
