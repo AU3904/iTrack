@@ -58,7 +58,7 @@ public class MainActivity extends BaseActivity
     private int index = 0;
     private int mKal = 0;
     //如果倒计时15s 速度一直为0，暂停运动
-    private int mTrackPauseLimited = 14;
+    private int mTrackPauseLimited = 15;
 
     private long mExitTime;
 
@@ -332,7 +332,18 @@ public class MainActivity extends BaseActivity
                 case MSG_SECOND:
                     if (startTrack && !mCounterThread.isSuspend()) {
                         mSecond++;
-                        setTimeTextAndRoundOff(tv_duration_second, mSecond, mMin, MSG_MIN);
+                        if (mSecond < 10) {
+                            tv_duration_second.setText("0" + mSecond);
+                        } else if (mSecond > 9 && mSecond < 60) {
+                            tv_duration_second.setText("" + mSecond);
+                        } else if (mSecond > 59) {
+                            mSecond = 0;
+                            tv_duration_second.setText("0" + mSecond);
+                            mMin++;
+                            Message message = new Message();
+                            message.what = MSG_MIN;
+                            handler.sendMessage(message);
+                        }
                     }
 
                     break;
@@ -343,7 +354,19 @@ public class MainActivity extends BaseActivity
                         handler.sendMessage(message0);
                     }
 
-                    setTimeTextAndRoundOff(tv_duration_min, mMin, mHour, MSG_HOUR);
+                    if (mMin < 10) {
+                        tv_duration_min.setText("0" + mMin);
+                    } else if (mMin > 9 && mMin < 60) {
+                        tv_duration_min.setText("" + mMin);
+                    } else if (mMin > 59) {
+                        mMin = 0;
+                        tv_duration_min.setText("0" + mMin);
+                        mHour++;
+                        Message message = new Message();
+                        message.what = MSG_HOUR;
+                        handler.sendMessage(message);
+                    }
+
                     break;
                 case MSG_HOUR:
                     if (mHour < 9) {
@@ -403,9 +426,9 @@ public class MainActivity extends BaseActivity
                     if (startTrack && !mPauseTrack) {
                         Thread.sleep(1000);
 
-                        if (mCurrentSpeed == 0 && mTrackPauseLimited-- < 0) {
+                        if (mCurrentSpeed == 0 && --mTrackPauseLimited < 0) {
                             mPauseTrack = true;
-                            mTrackPauseLimited = 30;
+                            mTrackPauseLimited = 15;
                         } else {
                             mPauseTrack = false;
                             Message message = new Message();
@@ -670,24 +693,6 @@ public class MainActivity extends BaseActivity
             return false;
         } else {
             return true;
-        }
-    }
-
-    private void setTimeTextAndRoundOff(TextView tv, int t1, int t2, int msg) {
-        if (tv == null) {
-            return;
-        }
-        if (t1 < 10) {
-            tv.setText("0" + t1);
-        } else if (t1 > 9 && t1 < 60) {
-            tv.setText("" + t1);
-        } else if (t1 > 59) {
-            t1 = 0;
-            tv.setText("0" + t1);
-            t2++;
-            Message message = new Message();
-            message.what = msg;
-            handler.sendMessage(message);
         }
     }
 }
