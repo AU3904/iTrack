@@ -81,7 +81,7 @@ public class TimeUtils {
     public static int getKal(double avgSpeed, int duration, int kg) {
 
         if (duration == 0 || kg == 0) {
-            return -1;
+            return 0;
         }
 
         int unitConsume = 0;

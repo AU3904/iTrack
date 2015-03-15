@@ -1,13 +1,19 @@
 package com.sports.iTrack.activity;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
@@ -54,14 +60,17 @@ public class MainActivity extends BaseActivity
     private int mSecond = 0;
     private int mMin = 0;
     private int mHour = 0;
-    private int previousPosition = 0;
     private int index = 0;
     private int mKal = 0;
-    //如果倒计时15s 速度一直为0，暂停运动
-    private int mTrackPauseLimited = 15;
+    //如果倒计时20s 速度一直为0，暂停运动
+    private int mTrackPauseLimited = 20;
 
     private long mExitTime;
 
+    /**
+     * 由气压传感器计算的海拔;
+     */
+    private double mHeight;
     private double mCurrentSpeed;
     private double mCurrentDistance = 0.0D;
 
@@ -73,27 +82,26 @@ public class MainActivity extends BaseActivity
 
     private LocationClient mLocClient;
     private Button mBtStart;
-    private Button mBtEnd;
-    private Button mBtGoon;
     private LinearLayout mllEndGoon;
-    private TextView tv_speed;
-    private TextView tv_duration_hour;
-    private TextView tv_duration_min;
-    private TextView tv_duration_second;
-    private TextView tv_distance;
-    private TextView tv_cal;
+    private TextView tv_speed, tv_duration_hour, tv_duration_min, tv_duration_second, tv_distance, tv_cal;
 
     private SliderRelativeLayout sliderLayout = null;
-    private ImageView imgView_getup_arrow;
     private AnimationDrawable animArrowDrawable = null;
 
 
     private TrackItem trackItem = null;
     private MyLocationListenner myListener = new MyLocationListenner();
-    private List<LatLng> backupPts = new ArrayList<LatLng>();
-    private SparseArray<BDLocation> locationSparseArray = new SparseArray<BDLocation>();
 
+    /**
+     * 存放 画线之后的 最后一个点，作为下一次画线的第一个点
+     */
+    private LatLng lastLatLng = null;
+    private SparseArray<BDLocation> locationSparseArray = new SparseArray<BDLocation>();
+    private List<LatLng> tempLatLngList = new ArrayList<LatLng>();
     private MyThread mCounterThread = new MyThread();
+
+    private SensorManager mSensorManager;
+    private Sensor mPressure;
 
     /**
      * Called when the activity is first created.
@@ -112,12 +120,21 @@ public class MainActivity extends BaseActivity
         super.onResume();
         mMapView.onResume();
         handler.postDelayed(AnimationDrawableTask, 300);
+
+        if (mPressure != null) {
+            mSensorManager.registerListener(mPressureListener, mPressure,
+                    SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
     @Override protected void onPause() {
         super.onPause();
         mMapView.onPause();
         animArrowDrawable.stop();
+
+        if (mPressure != null) {
+            mSensorManager.unregisterListener(mPressureListener);
+        }
     }
 
     @Override protected void onDestroy() {
@@ -136,6 +153,35 @@ public class MainActivity extends BaseActivity
         super.onDestroy();
     }
 
+    private double calcAltitude(BDLocation bdLocation, Sensor sensor) {
+        double altitude = 0;
+        if (bdLocation.hasAltitude()) {
+            altitude = bdLocation.getAltitude();
+        } else if (sensor != null){
+            // TODO 暂时不考虑海拔低于0的情况
+            altitude = Math.abs(mHeight);
+        }
+
+        return altitude;
+
+    }
+
+    private SensorEventListener mPressureListener = new SensorEventListener() {
+
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            if (startTrack) {
+                float sPV = event.values[0];
+                mHeight = 44330000 * (1 - (Math.pow((TimeUtils.formatData(sPV) / 1013.25),
+                        (float) 1.0 / 5255.0)));
+                mHeight = TimeUtils.formatData(mHeight);
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
     /**
      * 定位SDK监听函数
      */
@@ -153,8 +199,19 @@ public class MainActivity extends BaseActivity
 
             if (startTrack && !mCounterThread.isSuspend()) {
 
+                /**
+                 * baidu 定位失败返回的默认经度
+                 */
+                if ((location.getLatitude() == 5e-324) || (location.getLongitude() == 5e-324)
+                        || (location.getLatitude() == 4.9e-324) || (location.getLongitude() == 4.9e-324)) {
+                    return;
+                }
+
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                backupPts.add(latLng);
+                if (lastLatLng != null) {
+                    tempLatLngList.add(lastLatLng);
+                }
+                tempLatLngList.add(latLng);
 
                 /**
                  * 生成 RecordPoint 对象，并保存到SparseArray
@@ -166,24 +223,20 @@ public class MainActivity extends BaseActivity
                 if (locationSparseArray.size() <= 1) {
                     recodPoint.setDistance(0);
                 } else {
-                    distance = DistanceUtil.getDistance(
-                            new LatLng(location.getLatitude(), location.getLongitude()),
+                    distance = DistanceUtil.getDistance(latLng,
                             new LatLng(locationSparseArray.get(index - 1).getLatitude(),
                                     locationSparseArray.get(index - 1).getLongitude()));
                     recodPoint.setDistance(distance);
                 }
 
                 recodPoint.setSpeed(location.getSpeed());
-                recodPoint.setAltitude(location.getAltitude());
+                recodPoint.setAltitude(calcAltitude(location, mPressure));
                 recodPoint.setLatitude(location.getLatitude());
                 recodPoint.setLongitude(location.getLongitude());
                 recodPoint.setTimestamp(System.currentTimeMillis());
                 //recodPoint.save();
                 trackItem.getRecordPointList().add(recodPoint);
 
-                /**
-                 * 保存location，用于计算distance
-                 */
                 locationSparseArray.put(index, location);
                 index++;
 
@@ -193,19 +246,13 @@ public class MainActivity extends BaseActivity
 
                 tv_speed.setText(Double.toString(mCurrentSpeed));
 
-                //实时显示路径,每四步 画一次
-                if (backupPts.size() >= previousPosition + 4) {
-                    List<LatLng> temp = new ArrayList<LatLng>();
-                    for (int i = previousPosition; i < backupPts.size(); i++) {
-                        temp.add(backupPts.get(i));
-                    }
 
+                if (tempLatLngList.size() >= 4) {
                     OverlayOptions polylineOption = new PolylineOptions().color(0xAA0000FF).width(
-                            10).points(temp);
+                            10).points(tempLatLngList);
                     mBaiduMap.addOverlay(polylineOption);
-
-                    previousPosition = backupPts.size() - 1;
-                    temp.clear();
+                    lastLatLng = tempLatLngList.get(tempLatLngList.size() - 1);
+                    tempLatLngList.clear();
                 }
             }
 
@@ -219,12 +266,6 @@ public class MainActivity extends BaseActivity
     onClick(View v) {
         if (v.getId() == R.id.button2) {
             //for test
-            /*mBaiduMap.clear();
-            if (backupPts == null)
-                return;
-            OverlayOptions polylineOption = new PolylineOptions().color(0xAA0000FF).width(
-                    10).points(backupPts);
-            mBaiduMap.addOverlay(polylineOption);*/
         } else if (v.getId() == R.id.bt_start) {
 
             if (!NetworkUtils.isOpenGPS(this)) {
@@ -348,12 +389,15 @@ public class MainActivity extends BaseActivity
 
                     break;
                 case MSG_MIN:
-                    if (mMin == 15 || mMin == 45 || mMin == 60) {
+                    if (mMin == 5 || mMin == 10 || mMin == 25 || mMin == 45 || mMin == 55) {
+                        mKal = calculateKal();
+
                         Message message0 = new Message();
                         message0.what = MSG_CAL;
                         handler.sendMessage(message0);
                     }
 
+                    Log.e("lushuifei", "locationSparseArray size:"+locationSparseArray.size());
                     if (mMin < 10) {
                         tv_duration_min.setText("0" + mMin);
                     } else if (mMin > 9 && mMin < 60) {
@@ -376,10 +420,6 @@ public class MainActivity extends BaseActivity
                     }
                     break;
                 case MSG_CAL:
-                    int t = mHour * 60 * 60 + mMin * 60 + mSecond;
-                    double avgSpeed = (mCurrentDistance / t) * (3600 / 1000);
-                    double mCurrentAvgSpeed = TimeUtils.formatData(avgSpeed);
-                    mKal = TimeUtils.getKal(mCurrentAvgSpeed, (mHour * 2 + mMin), 65);
                     tv_cal.setText(mKal + "");
 
                     break;
@@ -407,6 +447,13 @@ public class MainActivity extends BaseActivity
             super.handleMessage(msg);
         }
     };
+
+    private int calculateKal(){
+        int t = mHour * 60 * 60 + mMin * 60 + mSecond;
+        double avgSpeed = (mCurrentDistance / t) * (3600 / 1000);
+        double mCurrentAvgSpeed = TimeUtils.formatData(avgSpeed);
+        return TimeUtils.getKal(mCurrentAvgSpeed, (mHour * 2 + mMin), 65);
+    }
 
     private Runnable AnimationDrawableTask = new Runnable(){
 
@@ -475,7 +522,7 @@ public class MainActivity extends BaseActivity
         @Override protected void onPostExecute(String s) {
             Toast.makeText(MainActivity.this, s, Toast.LENGTH_LONG).show();
             if (!startTrack) {
-                backupPts.clear();
+//                backupPts.clear();
                 locationSparseArray.clear();
                 mBaiduMap.clear();
             }
@@ -509,8 +556,8 @@ public class MainActivity extends BaseActivity
 
 
     private void initView(){
-        mBtEnd = (Button) findViewById(R.id.bt_end);
-        mBtGoon = (Button) findViewById(R.id.bt_goon);
+        Button mBtEnd = (Button) findViewById(R.id.bt_end);
+        Button mBtGoon = (Button) findViewById(R.id.bt_goon);
         mBtStart = (Button) findViewById(R.id.bt_start);
         mBtEnd.setOnClickListener(this);
         mBtGoon.setOnClickListener(this);
@@ -527,13 +574,21 @@ public class MainActivity extends BaseActivity
 
         mllEndGoon = (LinearLayout) findViewById(R.id.ll_end_goon);
         sliderLayout = (SliderRelativeLayout)findViewById(R.id.slider_layout);
-        imgView_getup_arrow = (ImageView)findViewById(R.id.getup_arrow);
+        ImageView imgView_getup_arrow = (ImageView) findViewById(R.id.getup_arrow);
         animArrowDrawable = (AnimationDrawable) imgView_getup_arrow.getBackground() ;
         sliderLayout.setMainHandler(handler);
 
         mBtStart.setVisibility(View.VISIBLE);
         mllEndGoon.setVisibility(View.GONE);
         sliderLayout.setVisibility(View.GONE);
+
+        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        if (mSensorManager != null) {
+            mPressure = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+            if(mPressure == null) {
+                Toast.makeText(this, "您的手机不支持气压传感器.", Toast.LENGTH_LONG);
+            }
+        }
     }
 
     private void initMapAndLocClient(){
@@ -567,6 +622,7 @@ public class MainActivity extends BaseActivity
          * 屏蔽所有事件
          */
         mMapView.setClickable(clickable);
+        //noinspection ConstantConditions
         getActionBar().setHomeButtonEnabled(clickable);
         mBtStart.setClickable(clickable);
         mllEndGoon.setClickable(clickable);
@@ -604,10 +660,10 @@ public class MainActivity extends BaseActivity
         mSecond = 0;
         mMin = 0;
         mHour = 0;
-        previousPosition = 0;
         index = 0;
         mCurrentSpeed = 0;
         mCurrentDistance = 0.0D;
+        mKal = 0;
         isFirstLoc = true;
     }
 
@@ -634,7 +690,7 @@ public class MainActivity extends BaseActivity
         }
 
         if (distance == 0) {
-            saveResult = "运动距离为0，不保存数据";
+            saveResult = "运动距离太短，不保存数据";
             return saveResult;
         }
 
@@ -679,7 +735,7 @@ public class MainActivity extends BaseActivity
         trackItem.setRecordPointsCount(recordPointsCount);
         trackItem.setDiscription(discription);
         trackItem.setTimestamp(timestamp);
-        trackItem.setKal(mKal);
+        trackItem.setKal(mKal == calculateKal() ? mKal : calculateKal());
         trackItem.save();
         trackItem = null;
         saveResult = "保存成功";

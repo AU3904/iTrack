@@ -433,15 +433,15 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
         } else if (c > 200 && c < 2000) {
             zoom = 16;
         } else if (c > 2000 && c < 20000) {
-            zoom = 13;
+            zoom = 16;
         } else if (c > 20000 && c < 100000) {
-            zoom = 10;
+            zoom = 16;
         } else if (c > 100000 && c < 500000) {
-            zoom = 7;
+            zoom = 13;
         } else if (c > 500000 && c < 1000000) {
-            zoom = 5;
+            zoom = 10;
         } else if (c > 1000000) {
-            zoom = 4;
+            zoom = 7;
         }
         return zoom;
     }
