@@ -9,14 +9,13 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.sports.iTrack.activity.MainActivity;
 import com.sports.iTrack.R;
+import com.sports.iTrack.utils.constant;
 
 public class SliderRelativeLayout extends RelativeLayout {
 
@@ -120,7 +119,7 @@ public class SliderRelativeLayout extends RelativeLayout {
         if (isSucess) {
             resetViewState();
             virbate();
-            mainHandler.obtainMessage(MainActivity.MSG_CLEAR_LOCK_SUCESS).sendToTarget();
+            mainHandler.obtainMessage(constant.MSG_CLEAR_LOCK_SUCESS).sendToTarget();
         } else {
             mLastMoveX = x;
             int distance = x - tv_slider_icon.getRight();

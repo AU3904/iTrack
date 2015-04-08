@@ -55,6 +55,13 @@
         <service
             android:name=".service.LockService">
         </service>
+        <service
+            android:name=".service.CoreService"
+            android:enabled="true">
+            <intent-filter android:priority="1000" >
+                <action android:name="com.sports.iTrack.coreService" />
+            </intent-filter>
+        </service>
     </application>
 
 
