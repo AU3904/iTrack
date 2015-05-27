@@ -109,13 +109,10 @@ public class CoreService extends IntentService {
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        Log.e("lushuifei", "on onLowMemory");
-
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.e("lushuifei", "on onBind");
         Notification notification = new Notification(R.drawable.ic_launcher, getText(R.string.app_name),
                 System.currentTimeMillis());
         Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -158,7 +155,6 @@ public class CoreService extends IntentService {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.e("lushuifei", "on onUnbind");
         mLocClient.unRegisterLocationListener(myListener);
         // 退出时销毁定位
         mLocClient.stop();
@@ -170,13 +166,11 @@ public class CoreService extends IntentService {
 
     @Override
     public void onRebind(Intent intent) {
-        Log.e("lushuifei", "on onRebind");
         super.onRebind(intent);
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        Log.e("lushuifei", "on onTaskRemoved");
         super.onTaskRemoved(rootIntent);
     }
 
