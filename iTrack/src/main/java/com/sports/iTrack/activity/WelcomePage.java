@@ -12,9 +12,6 @@ import com.sports.iTrack.R;
 
 import java.util.List;
 
-/**
- * Created by aaron_lu on 2/3/15.
- */
 public class WelcomePage extends Activity implements View.OnClickListener{
     private final static String KEY_START_METHOD = "KEY_START_METHOD";
     @Override protected void onCreate(Bundle savedInstanceState) {
