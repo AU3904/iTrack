@@ -15,7 +15,6 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.RemoteException;
-import android.util.Log;
 import android.util.SparseArray;
 import android.widget.Toast;
 
@@ -37,10 +36,8 @@ import com.sports.iTrack.utils.constant;
 
 import org.litepal.crud.DataSupport;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -53,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 public class CoreService extends IntentService {
 
     private LocationBinder locationBinder = new LocationBinder();
-    private MyLocationListenner myListener = new MyLocationListenner();
+    private MyLocationListener myListener = new MyLocationListener();
     private LocationClient mLocClient;
     private SensorManager mSensorManager;
     private Sensor mPressure;
@@ -78,6 +75,7 @@ public class CoreService extends IntentService {
     private LatLng lastLatLng = null;
     private SparseArray<BDLocation> locationSparseArray = new SparseArray<BDLocation>();
     private ArrayList<LatLng> latLngArrayList = new ArrayList<LatLng>();
+    private static final double ERROR_RATE = 0.009;//about 1km
 
     public CoreService() {
         super("CoreService");
@@ -183,7 +181,7 @@ public class CoreService extends IntentService {
             if (constant.CMD_NEW_TRACK_ITEM.equalsIgnoreCase(cmd)) {
                 trackItem = new TrackItem();
             } else if (constant.CMD_SAVE_RECORD_POINT.equalsIgnoreCase(cmd)) {
-                saveRecodPoint();
+                saveRecordPoint();
             } else if (constant.CMD_EXE_SAVE_TRACK_ITEM.equalsIgnoreCase(cmd)) {
                 new SaveTrackItemTask().execute();
             }
@@ -194,7 +192,7 @@ public class CoreService extends IntentService {
     /**
      * 定位SDK监听函数
      */
-    private class MyLocationListenner implements BDLocationListener {
+    private class MyLocationListener implements BDLocationListener {
 
         @Override
         public void onReceiveLocation(BDLocation location) {
@@ -349,7 +347,7 @@ public class CoreService extends IntentService {
      * 2. 退到后台
      * 3. 异常退出
      */
-    private void saveRecodPoint() {
+    private void saveRecordPoint() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
         final Runnable runnable = new Runnable() {
@@ -416,10 +414,10 @@ public class CoreService extends IntentService {
         double maxAltitude = altitudes.get(recordPoints.size() - 1);
         double minAltitude = altitudes.get(0);
 
-        int sportTpye = 1;
+        int sportType = 1;
         int recordPointsCount = recordPoints.size();
 
-        String discription = "我de骑行记录";
+        String description = "我de骑行记录";
         long timestamp = System.currentTimeMillis();
 
         trackItem.setStartTime(startTime);
@@ -431,9 +429,9 @@ public class CoreService extends IntentService {
         trackItem.setMinSpeed(minSpeed);
         trackItem.setMaxAltitude(maxAltitude);
         trackItem.setMinAltitude(minAltitude);
-        trackItem.setSportTpye(sportTpye);
+        trackItem.setSportType(sportType);
         trackItem.setRecordPointsCount(recordPointsCount);
-        trackItem.setDiscription(discription);
+        trackItem.setDescription(description);
         trackItem.setTimestamp(timestamp);
         trackItem.setKal(mKal == calculateKal() ? mKal : calculateKal());
         trackItem.save();
@@ -442,14 +440,9 @@ public class CoreService extends IntentService {
         return saveResult;
     }
 
-    private static final double ERROR_RATE = 0.009;//about 1km
     private boolean isReasonableLocation(BDLocation lastLocation, BDLocation newLocation) {
         double lngRate = Math.abs(lastLocation.getLongitude() - newLocation.getLongitude());
         double latRate = Math.abs(lastLocation.getLatitude() - newLocation.getLatitude());
-        if (lngRate > ERROR_RATE || latRate > ERROR_RATE) {
-            return false;
-        } else {
-            return true;
-        }
+        return !(lngRate > ERROR_RATE || latRate > ERROR_RATE);
     }
 }

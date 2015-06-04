@@ -73,7 +73,7 @@ public class SliderRelativeLayout extends RelativeLayout {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 mLastMoveX = (int) event.getX();
-                return handleActionDownEvenet(event);
+                return handleActionDownEvent(event);
             case MotionEvent.ACTION_MOVE:
                 mLastMoveX = x;
                 invalidate();
@@ -89,18 +89,16 @@ public class SliderRelativeLayout extends RelativeLayout {
 
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        //Log.(TAG, "onDraw ######" );
         invalidateDragImg(canvas);
     }
 
     private void invalidateDragImg(Canvas canvas) {
-        //Log.e(TAG, "handleActionUpEvenet : invalidateDragImg" );
         int drawXCor = mLastMoveX - dragBitmap.getWidth();
         int drawYCor = tv_slider_icon.getTop();
         canvas.drawBitmap(dragBitmap, drawXCor < 0 ? 5 : drawXCor, drawYCor, null);
     }
 
-    private boolean handleActionDownEvenet(MotionEvent event) {
+    private boolean handleActionDownEvent(MotionEvent event) {
         Rect rect = new Rect();
         tv_slider_icon.getHitRect(rect);
         boolean isHit = rect.contains((int) event.getX(), (int) event.getY());
@@ -114,11 +112,11 @@ public class SliderRelativeLayout extends RelativeLayout {
 
     private void handleActionUpEvent(MotionEvent event) {
         int x = (int) event.getX();
-        boolean isSucess = Math.abs(x - getRight()) <= 300;
+        boolean isSuccess = Math.abs(x - getRight()) <= 300;
 
-        if (isSucess) {
+        if (isSuccess) {
             resetViewState();
-            virbate();
+            vibrate();
             mainHandler.obtainMessage(constant.MSG_CLEAR_LOCK_SUCESS).sendToTarget();
         } else {
             mLastMoveX = x;
@@ -153,12 +151,11 @@ public class SliderRelativeLayout extends RelativeLayout {
     };
 
     private Handler mHandler = new Handler() {
-
         public void handleMessage(Message msg) {
         }
     };
 
-    private void virbate() {
+    private void vibrate() {
         Vibrator vibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(200);
     }

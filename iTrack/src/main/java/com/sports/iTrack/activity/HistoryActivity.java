@@ -169,7 +169,7 @@ public class HistoryActivity extends BaseActivity implements AdapterView.OnItemC
                 viewHolder.tvEndTime.setText(TimeUtils.formatTimestamp(item.getEndTime(),
                         TimeUtils.YYYY_MM_DD));
 
-                if (item.getSportTpye() == 1) {
+                if (item.getSportType() == 1) {
                     viewHolder.tvSportType.setText("骑行:");
                 } else {
                     viewHolder.tvSportType.setText("?");

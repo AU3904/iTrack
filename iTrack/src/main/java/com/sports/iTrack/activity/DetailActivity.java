@@ -1,6 +1,5 @@
 package com.sports.iTrack.activity;
 
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -15,7 +14,6 @@ import android.widget.*;
 import com.baidu.mapapi.map.*;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
-import com.github.mikephil.charting.charts.LineChart;
 import com.sports.iTrack.R;
 import com.sports.iTrack.model.RecordPoint;
 import com.sports.iTrack.model.TrackItem;
@@ -63,15 +61,8 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
         initView();
     }
 
-    @Override protected void onResume() {
-        super.onResume();
-    }
-
-    @Override protected void onPause() {
-        super.onPause();
-    }
-
-    @Override protected void onDestroy() {
+    @Override
+    protected void onDestroy() {
         super.onDestroy();
         mPoints.clear();
         mLatLngs.clear();
@@ -314,7 +305,7 @@ public class DetailActivity extends FragmentActivity implements View.OnClickList
             tvAltitudeRange.setText(
                     mCurrentTrackItem.getMinAltitude() + "m/" + mCurrentTrackItem.getMaxAltitude()
                             + "m");
-            tvDesciption.setText(mCurrentTrackItem.getDiscription());
+            tvDesciption.setText(mCurrentTrackItem.getDescription());
 
             tvAvgSpeed.setText(Double.toString(mCurrentTrackItem.getAvgSpeed()) + "km/h");
 

@@ -32,12 +32,9 @@ import com.sports.iTrack.ui.SliderRelativeLayout;
 import com.sports.iTrack.utils.NetworkUtils;
 import com.sports.iTrack.utils.constant;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity extends BaseActivity
-        implements View.OnClickListener {
+public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private double mSpeed;
 
@@ -53,6 +50,122 @@ public class MainActivity extends BaseActivity
     private CoreService.LocationBinder mBinder;
     private OneTrack mOneTrack = OneTrack.getInstance();
     private Time mTime = Time.getInstance();
+    private long mExitTime;
+    private TrackLocation trackLocation = TrackLocation.getInstance();
+
+    private static final int PAUSE_LIMIT = 20; //20s
+    private int mTrackPauseLimited = PAUSE_LIMIT;
+
+    private final Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case constant.MSG_CLEAR_LOCK_SUCESS:
+                    mBtStart.setVisibility(View.GONE);
+                    mllEndGoon.setVisibility(View.VISIBLE);
+                    sliderLayout.setVisibility(View.GONE);
+                    setClickable(true);
+                    break;
+                default:
+                    break;
+            }
+            super.handleMessage(msg);
+        }
+    };
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MainActivity.this.mBinder = (CoreService.LocationBinder) service;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+
+    private BroadcastReceiver mUpdateUIReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context, "UpdateUIReceiver receive", Toast.LENGTH_SHORT).show();
+            switch (intent.getIntExtra(constant.KEY_FLAG, -1)) {
+                case constant.FLAG_POLY:
+                    List<LatLng> tempLatLngList = trackLocation.getBdLocationArrayList();
+                    if (tempLatLngList != null && tempLatLngList.size() > 0) {
+                        OverlayOptions polylineOption = new PolylineOptions().color(0xAA0000FF).width(
+                                10).points(tempLatLngList);
+                        mBaiduMap.addOverlay(polylineOption);
+                    }
+
+                    break;
+                case constant.FLAG_FIRST_LOCATION:
+                    showLocOnFirst(trackLocation.getBdLocation());
+                    break;
+                case constant.FLAG_UI:
+                    double mDistance = intent.getDoubleExtra(constant.KEY_DISTANCE, 0.0D);
+                    mSpeed = intent.getDoubleExtra(constant.KEY_SPEED, 0.0D);
+                    int mKal = intent.getIntExtra(constant.KEY_KAL, 0);
+                    tv_cal.setText(mKal + "");
+                    tv_distance.setText(Double.toString(mDistance));
+                    tv_speed.setText(Double.toString(mSpeed));
+                    break;
+                default:
+                    break;
+            }
+
+        }
+    };
+
+    private Runnable AnimationDrawableTask = new Runnable() {
+
+        public void run() {
+            animArrowDrawable.start();
+            handler.postDelayed(AnimationDrawableTask, 300);
+        }
+    };
+
+    private Runnable mCounterRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mSpeed == 0 && --mTrackPauseLimited < 0) {
+                mOneTrack.pause();
+                mTrackPauseLimited = PAUSE_LIMIT;
+            } else {
+                mOneTrack.resume();
+
+                mTime.secondPlus();
+                int second = mTime.getSecond();
+                if (second < 10) {
+                    tv_duration_second.setText("0" + second);
+                } else if (second > 9 && second < 60) {
+                    tv_duration_second.setText("" + second);
+                } else if (second > 59) {
+                    second = 0;
+                    tv_duration_second.setText("0" + second);
+                    mTime.minPlus();
+                    int min = mTime.getMin();
+                    if (min < 10) {
+                        tv_duration_min.setText("0" + min);
+                    } else if (min > 9 && min < 60) {
+                        tv_duration_min.setText("" + min);
+                    } else if (min > 59) {
+                        mTime.setMin(0);
+                        tv_duration_min.setText("0" + min);
+                        mTime.hourPlus();
+                        int hour = mTime.getHour();
+                        if (hour < 9) {
+                            tv_duration_hour.setText("0" + hour);
+                        } else {
+                            tv_duration_hour.setText("" + hour);
+                        }
+                    }
+                }
+
+                handler.postDelayed(this, 1000);
+            }
+
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -94,18 +207,13 @@ public class MainActivity extends BaseActivity
 
         unbindService(serviceConnection);
         unregisterReceiver(mUpdateUIReceiver);
-        mOneTrack.destory();
+        mOneTrack.destroy();
         super.onDestroy();
     }
 
-
     @Override
-    public void
-    onClick(View v) {
-        if (v.getId() == R.id.button2) {
-            //for test
-        } else if (v.getId() == R.id.bt_start) {
-
+    public void onClick(View v) {
+        if (v.getId() == R.id.bt_start) {
             if (!NetworkUtils.isOpenGPS(this)) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("GPS 尚未打开，是否打开?")
@@ -181,7 +289,6 @@ public class MainActivity extends BaseActivity
         }
     }
 
-    private long mExitTime;
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             if (!mOneTrack.isStart()) {
@@ -202,82 +309,12 @@ public class MainActivity extends BaseActivity
         }
     }
 
-    final Handler handler = new Handler() {
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case constant.MSG_CLEAR_LOCK_SUCESS:
-                    mBtStart.setVisibility(View.GONE);
-                    mllEndGoon.setVisibility(View.VISIBLE);
-                    sliderLayout.setVisibility(View.GONE);
-                    setClickable(true);
-                    break;
-                default:
-                    break;
-            }
-            super.handleMessage(msg);
-        }
-    };
-
-    private void sendMsg(Handler handler, int flag) {
+    /*private void sendMsg(Handler handler, int flag) {
         handler.removeMessages(flag);
         Message message = new Message();
         message.what = flag;
         handler.sendMessage(message);
-    }
-
-    private static final int PAUSE_LIMIT = 20; //20s
-    private int mTrackPauseLimited = PAUSE_LIMIT;
-    private Runnable mCounterRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (mSpeed == 0 && --mTrackPauseLimited < 0) {
-                mOneTrack.pause();
-                mTrackPauseLimited = PAUSE_LIMIT;
-            } else {
-                mOneTrack.resume();
-
-                mTime.secondPlus();
-                int second = mTime.getSecond();
-                if (second < 10) {
-                    tv_duration_second.setText("0" + second);
-                } else if (second > 9 && second < 60) {
-                    tv_duration_second.setText("" + second);
-                } else if (second > 59) {
-                    second = 0;
-                    tv_duration_second.setText("0" + second);
-                    mTime.minPlus();
-                    int min = mTime.getMin();
-                    if (min < 10) {
-                        tv_duration_min.setText("0" + min);
-                    } else if (min > 9 && min < 60) {
-                        tv_duration_min.setText("" + min);
-                    } else if (min > 59) {
-                        mTime.setMin(0);
-                        tv_duration_min.setText("0" + min);
-                        mTime.hourPlus();
-                        int hour = mTime.getHour();
-                        if (hour < 9) {
-                            tv_duration_hour.setText("0" + hour);
-                        } else {
-                            tv_duration_hour.setText("" + hour);
-                        }
-                    }
-                }
-
-                handler.postDelayed(this, 1000);
-            }
-
-        }
-    };
-
-
-    private Runnable AnimationDrawableTask = new Runnable() {
-
-        public void run() {
-            animArrowDrawable.start();
-            handler.postDelayed(AnimationDrawableTask, 300);
-        }
-    };
+    }*/
 
     private void initView() {
         Button mBtEnd = (Button) findViewById(R.id.bt_end);
@@ -324,9 +361,6 @@ public class MainActivity extends BaseActivity
     }
 
     private void setClickable(boolean clickable) {
-        /**
-         * 屏蔽所有事件
-         */
         mMapView.setClickable(clickable);
         //noinspection ConstantConditions
         getActionBar().setHomeButtonEnabled(clickable);
@@ -364,49 +398,4 @@ public class MainActivity extends BaseActivity
 
         mOneTrack.setFirstLocation(true);
     }
-
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            MainActivity.this.mBinder = (CoreService.LocationBinder) service;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-
-        }
-    };
-
-    private TrackLocation trackLocation = TrackLocation.getInstance();
-    private BroadcastReceiver mUpdateUIReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context, "UpdateUIReceiver receive", Toast.LENGTH_SHORT).show();
-            switch (intent.getIntExtra(constant.KEY_FLAG, -1)) {
-                case constant.FLAG_POLY:
-                    List<LatLng> tempLatLngList = trackLocation.getBdLocationArrayList();
-                    if (tempLatLngList != null && tempLatLngList.size() > 0) {
-                        OverlayOptions polylineOption = new PolylineOptions().color(0xAA0000FF).width(
-                                10).points(tempLatLngList);
-                        mBaiduMap.addOverlay(polylineOption);
-                    }
-
-                    break;
-                case constant.FLAG_FIRST_LOCATION:
-                    showLocOnFirst(trackLocation.getBdLocation());
-                    break;
-                case constant.FLAG_UI:
-                    double mDistance = intent.getDoubleExtra(constant.KEY_DISTANCE, 0.0D);
-                    mSpeed = intent.getDoubleExtra(constant.KEY_SPEED, 0.0D);
-                    int mKal = intent.getIntExtra(constant.KEY_KAL, 0);
-                    tv_cal.setText(mKal + "");
-                    tv_distance.setText(Double.toString(mDistance));
-                    tv_speed.setText(Double.toString(mSpeed));
-                    break;
-                default:
-                    break;
-            }
-
-        }
-    };
 }

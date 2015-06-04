@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class TrackItem extends DataSupport {
 
-    private int sportTpye;
+    private int sportType;
     private int recordPointsCount;
     private int kal;
     private long startTime;
@@ -34,7 +34,7 @@ public class TrackItem extends DataSupport {
 
     private double minAltitude;
     private double distance;
-    private String discription;
+    private String description;
 
     public long getId(){
         return id;
@@ -82,16 +82,16 @@ public class TrackItem extends DataSupport {
         this.minAltitude = minAltitude;
     }
 
-    public void setSportTpye(int sportTpye) {
-        this.sportTpye = sportTpye;
+    public void setSportType(int sportType) {
+        this.sportType = sportType;
     }
 
     public void setRecordPointsCount(int recordPointsCount) {
         this.recordPointsCount = recordPointsCount;
     }
 
-    public void setDiscription(String discription) {
-        this.discription = discription;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public void setTimestamp(long timestamp) {
@@ -139,16 +139,16 @@ public class TrackItem extends DataSupport {
         return minAltitude;
     }
 
-    public int getSportTpye() {
-        return sportTpye;
+    public int getSportType() {
+        return sportType;
     }
 
     public int getRecordPointsCount() {
         return recordPointsCount;
     }
 
-    public String getDiscription() {
-        return discription;
+    public String getDescription() {
+        return description;
     }
 
     public long getTimestamp() {

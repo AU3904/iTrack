@@ -45,7 +45,7 @@ public class OneTrack {
         this.firstLocation = firstLocation;
     }
 
-    public void destory() {
+    public void destroy() {
         ourInstance = null;
     }
 
